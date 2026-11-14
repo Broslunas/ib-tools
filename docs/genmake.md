@@ -97,4 +97,19 @@ Para que se puedan añadir las funciones por defecto, tu plantilla debe contener
 
 ## Tus datos en la cabecera
 
-El nombre y el correo de la cabecera (`@author`) salen de `~/.config/ib-tools/config`. Para cambiarlos mira [la guía de instalación](instalacion.md#cambiar-tu-nombre-o-tu-correo).
+La cabecera de cada archivo y del `Makefile` sale de tu perfil (`ib-config`): universidad, centro, titulación, asignatura con el curso, y tu nombre y correo en `@author`. Los campos que dejaste vacíos no aparecen. Así funciona con cualquier universidad:
+
+```cpp
+/**
+ * Universidad de Ejemplo
+ * Escuela de Ingeniería
+ * Grado en Informática
+ * Programación 2026-2027
+ *
+ * @file cuadrado_main.cc
+ * @author Ana Pérez ana@ejemplo.edu
+ * @date Nov 14 2026
+ ...
+```
+
+Para cambiar esos datos mira [ib-config e ib-update](perfil.md). Los mensajes de `genmake` y el texto de las funciones por defecto salen en español o inglés según el idioma de tu perfil.

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Instalador de ib-tools: genmake, run y estilo (Informática Básica, ULL).
+# Instalador de ib-tools: genmake, run, estilo, ib-config, ib-update.
+# ib-tools installer (works for any university).
 #
 # Uso:
 #   ./install.sh                instala (o actualiza) los comandos
 #   ./install.sh --desinstalar  borra los comandos de ~/.local/bin
+#   ./install.sh --actualizar   actualiza sin volver a preguntar nada (lo usa ib-update)
 #
 # También funciona sin clonar el repositorio:
 #   curl -fsSL https://raw.githubusercontent.com/Broslunas/ib-tools/main/install.sh | bash
@@ -11,7 +13,7 @@
 set -euo pipefail
 
 REPO_RAW="https://raw.githubusercontent.com/Broslunas/ib-tools/main"
-COMANDOS=(genmake run estilo)
+COMANDOS=(genmake run estilo ib-config ib-update)
 
 bin="$HOME/.local/bin"
 config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
@@ -34,30 +36,14 @@ if [[ "${1:-}" == "--desinstalar" ]]; then
 fi
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  sed -n '2,10p' "${BASH_SOURCE[0]:-/dev/null}" 2>/dev/null | sed 's/^# \{0,1\}//'
+  sed -n '2,11p' "${BASH_SOURCE[0]:-/dev/null}" 2>/dev/null | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
 echo "== Instalador de ib-tools =="
 
-# ---------- Tus datos (cabecera de los archivos que genera genmake) ----------
-if [[ -f "$config" ]]; then
-  # shellcheck disable=SC1090
-  source "$config"
-fi
-if [[ -z "${IB_NOMBRE:-}" ]]; then
-  preguntar "Nombre y apellidos: " IB_NOMBRE
-fi
-if [[ -z "${IB_EMAIL:-}" ]]; then
-  preguntar "Correo de la universidad: " IB_EMAIL
-fi
-if [[ -z "$IB_NOMBRE" || -z "$IB_EMAIL" ]]; then
-  echo "Error: el nombre y el correo no pueden estar vacíos." >&2
-  exit 1
-fi
-mkdir -p "$(dirname "$config")"
-printf 'IB_NOMBRE=%q\nIB_EMAIL=%q\n' "$IB_NOMBRE" "$IB_EMAIL" > "$config"
-echo "Datos guardados en $config"
+actualizar=0
+[[ "${1:-}" == "--actualizar" ]] && actualizar=1
 
 # ---------- Origen de los comandos: carpeta bin/ del repo o descarga ----------
 origen=""
@@ -91,6 +77,20 @@ for c in "${COMANDOS[@]}"; do
 done
 echo "Instalados en $bin: ${COMANDOS[*]}"
 
+# Versión instalada (para ib-update)
+mkdir -p "$(dirname "$config")"
+if [[ -f "$origen/../VERSION" ]]; then
+  cp "$origen/../VERSION" "$(dirname "$config")/version"
+else
+  curl -fsSL "$REPO_RAW/VERSION" -o "$(dirname "$config")/version" 2>/dev/null || true
+fi
+
+# ---------- Tu perfil (nombre, universidad, asignatura...) ----------
+if [[ $actualizar -eq 0 ]]; then
+  echo
+  "$bin/ib-config"
+fi
+
 # ---------- PATH ----------
 nuevo_path=0
 if [[ ":$PATH:" != *":$bin:"* ]]; then
@@ -108,7 +108,7 @@ if ! command -v cpplint >/dev/null && [[ ! -x "$bin/cpplint" ]]; then
   faltan+=(cpplint)
 fi
 
-if [[ ${#faltan[@]} -gt 0 ]]; then
+if [[ ${#faltan[@]} -gt 0 && $actualizar -eq 0 ]]; then
   echo
   echo "Para el comando 'estilo' faltan: ${faltan[*]}"
   if command -v apt-get >/dev/null; then
@@ -141,6 +141,8 @@ echo "Listo. Comandos:"
 echo "  genmake [nombre]   crea Makefile y archivos del ejercicio, preguntando paso a paso"
 echo "  run [args]         recompila y ejecuta el programa del Makefile"
 echo "  estilo [-f]        revisa (y con -f corrige) el estilo del código"
+echo "  ib-config          cambia tu perfil (nombre, universidad, asignatura...)"
+echo "  ib-update          actualiza ib-tools a la última versión"
 if [[ "$nuevo_path" -eq 1 ]]; then
   echo
   echo "Abre una terminal nueva o ejecuta: source ~/.bashrc"

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# ib-update: actualiza ib-tools a la última versión.
+# ib-update: updates ib-tools to the latest version.
+#
+#   ib-update            descarga e instala la última versión
+#   ib-update --aviso    (interno) avisa si hay versión nueva, como mucho 1 vez/semana
+
+set -euo pipefail
+
+REPO_RAW="https://raw.githubusercontent.com/Broslunas/ib-tools/main"
+estado="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools"
+config="$estado/config"
+# shellcheck disable=SC1090
+[[ -f "$config" ]] && source "$config"
+case "${IB_LANG:-${LANG:-}}" in es*|ES*) L=es ;; *) L=en ;; esac
+tr_() { if [[ "$L" == es ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi; }
+
+local_v="$estado/version"
+version_local() { cat "$local_v" 2>/dev/null || echo 0; }
+version_remota() { curl -fsSL --max-time 3 "$REPO_RAW/VERSION" 2>/dev/null | tr -d '[:space:]'; }
+
+if [[ "${1:-}" == "--aviso" ]]; then
+  command -v curl >/dev/null || exit 0
+  marca="$estado/ultimo-aviso"
+  ahora="$(date +%s)"
+  if [[ -f "$marca" ]] && (( ahora - $(cat "$marca" 2>/dev/null || echo 0) < 604800 )); then exit 0; fi
+  mkdir -p "$estado"; echo "$ahora" > "$marca"
+  remota="$(version_remota || true)"
+  if [[ -n "$remota" && "$remota" != "$(version_local)" ]]; then
+    echo
+    tr_ "Hay una versión nueva de ib-tools ($remota). Actualiza con: ib-update" \
+        "A new ib-tools version is available ($remota). Update with: ib-update"
+    echo
+  fi
+  exit 0
+fi
+
+command -v curl >/dev/null || { tr_ 'Hace falta curl (sudo apt install curl).' 'curl is required (sudo apt install curl).' >&2; echo >&2; exit 1; }
+tr_ 'Descargando la última versión...' 'Downloading the latest version...'; echo
+curl -fsSL "$REPO_RAW/install.sh" | bash -s -- --actualizar

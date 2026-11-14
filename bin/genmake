@@ -1,35 +1,139 @@
 #!/usr/bin/env bash
 # genmake: genera el Makefile y los archivos de un ejercicio de C++,
-# preguntando paso a paso.
+# preguntando paso a paso.  /  Creates the Makefile and files of a C++
+# exercise, asking step by step.
 #
-# Uso: genmake [nombre] [-y]
-#   nombre  nombre del ejercicio (si no lo das, lo pregunta)
-#   -y      acepta todos los valores por defecto sin preguntar
+# Uso / Usage: genmake [nombre|name] [-y]
+#   -y      acepta todos los valores por defecto / accept all defaults
 #
-# Archivos que crea (para el ejercicio "factorial"):
-#   Makefile            se reescribe siempre
-#   factorial_main.cc   programa principal (main)
-#   factorial.cc/.h     funciones (opcional), con las funciones por defecto
-#                       PrintProgramPurpose y CheckCorrectParameters (opcional)
+# Archivos / Files (ejercicio "cuadrado"):
+#   Makefile, cuadrado_main.cc, [cuadrado.cc + cuadrado.h]
 # Los .cc y .h que ya existen no se tocan nunca.
 
 set -euo pipefail
 
+# ---------- Configuración e idioma ----------
+config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
+# shellcheck disable=SC1090
+[[ -f "$config" ]] && source "$config"
+
+idioma() {
+  case "${IB_LANG:-${IB_IDIOMA:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}}" in
+    es*|ES*) L=es ;;
+    *) L=en ;;
+  esac
+}
+idioma
+
+declare -A ES EN
+ES=(
+  [usage]='Uso: genmake [nombre] [-y]   (ej: genmake cuadrado)\n'
+  [unknown_opt]='Opción desconocida: %s (usa -h para ver el uso)\n'
+  [missing_data]='Error: faltan tus datos (nombre y correo). Ejecuta ib-config.\n'
+  [invalid_name]="Error: nombre no válido: '%s'\n"
+  [invalid_again]='  Nombre no válido (solo letras, números, _ . -).\n'
+  [name_fail]='Error: no se pudo obtener un nombre válido.\n'
+  [num_hint]='  Escribe un número entero entre 0 y 20.\n'
+  [num_fail]='Error: número no válido.\n'
+  [same_name]='Error: el archivo de funciones no puede llamarse igual que el principal.\n'
+  [yn_marks_n]='s/N'
+  [yn_marks_s]='S/n'
+  [q_name]='Nombre del ejercicio (será también el del ejecutable)'
+  [q_main]='Nombre del archivo del programa principal (con el main)'
+  [q_funcs]='¿Crear un archivo de funciones?'
+  [q_funcs_name]='Nombre del archivo de funciones (.cc y .h)'
+  [q_default]='¿Añadir las funciones por defecto (PrintProgramPurpose y CheckCorrectParameters)?'
+  [q_nargs]='¿Cuántos argumentos espera el programa (sin contar su nombre)?'
+  [q_argname]='Nombre del argumento %s'
+  [q_desc]='¿Qué hace el programa? (descripción corta)'
+  [q_confirm]='¿Crear estos archivos?'
+  [def_arg]='argumento'
+  [placeholder_desc]='<describe aquí qué hace>'
+  [summary]='Resumen:'
+  [l_exec]='Ejecutable'
+  [l_defaults]='Funciones por defecto'
+  [l_goal]='Objetivo'
+  [v_main]='programa principal (%s)'
+  [v_funcs]='funciones (%s)'
+  [v_protos]='prototipos (%s)'
+  [v_defaults]='%s argumento(s):%s'
+  [v_none]=' ninguno'
+  [st_new]='nuevo'
+  [st_exists]='ya existe, no se toca'
+  [mk_rewrite]='se reescribe'
+  [cancelled]='Cancelado, no se ha creado nada.\n'
+  [mk_created]="Makefile creado para '%s'.\n"
+  [created]='%s creado.\n'
+  [exists]='%s ya existe, no se toca.\n'
+  [warn_main]='Aviso: añade tú las llamadas a PrintProgramPurpose y CheckCorrectParameters en %s.\n'
+)
+EN=(
+  [usage]='Usage: genmake [name] [-y]   (e.g. genmake square)\n'
+  [unknown_opt]='Unknown option: %s (use -h for usage)\n'
+  [missing_data]='Error: your details (name and email) are missing. Run ib-config.\n'
+  [invalid_name]="Error: invalid name: '%s'\n"
+  [invalid_again]='  Invalid name (letters, numbers, _ . - only).\n'
+  [name_fail]='Error: could not get a valid name.\n'
+  [num_hint]='  Enter an integer between 0 and 20.\n'
+  [num_fail]='Error: invalid number.\n'
+  [same_name]='Error: the functions file cannot have the same name as the main file.\n'
+  [yn_marks_n]='y/N'
+  [yn_marks_s]='Y/n'
+  [q_name]="Exercise name (also the executable's name)"
+  [q_main]='Name of the main program file (the one with main())'
+  [q_funcs]='Create a functions file?'
+  [q_funcs_name]='Name of the functions file (.cc and .h)'
+  [q_default]='Add the default functions (PrintProgramPurpose and CheckCorrectParameters)?'
+  [q_nargs]='How many arguments does the program expect (not counting its name)?'
+  [q_argname]='Name of argument %s'
+  [q_desc]='What does the program do? (short description)'
+  [q_confirm]='Create these files?'
+  [def_arg]='argument'
+  [placeholder_desc]='<describe what it does here>'
+  [summary]='Summary:'
+  [l_exec]='Executable'
+  [l_defaults]='Default functions'
+  [l_goal]='Goal'
+  [v_main]='main program (%s)'
+  [v_funcs]='functions (%s)'
+  [v_protos]='prototypes (%s)'
+  [v_defaults]='%s argument(s):%s'
+  [v_none]=' none'
+  [st_new]='new'
+  [st_exists]='already exists, left untouched'
+  [mk_rewrite]='will be rewritten'
+  [cancelled]='Cancelled, nothing was created.\n'
+  [mk_created]="Makefile created for '%s'.\n"
+  [created]='%s created.\n'
+  [exists]='%s already exists, left untouched.\n'
+  [warn_main]='Note: add the calls to PrintProgramPurpose and CheckCorrectParameters to %s yourself.\n'
+)
+
+# t clave [args...]: imprime el mensaje en el idioma activo
+t() {
+  local key="$1" fmt
+  shift
+  if [[ "$L" == es ]]; then fmt="${ES[$key]}"; else fmt="${EN[$key]}"; fi
+  # shellcheck disable=SC2059
+  printf "$fmt" "$@"
+}
+
+# ---------- Argumentos ----------
 auto=0
 args=()
 for a in "$@"; do
   case "$a" in
     -y) auto=1 ;;
     -h|--help)
-      echo "Uso: genmake [nombre] [-y]   (ej: genmake factorial)"
+      t usage
       exit 0 ;;
-    -*) echo "Opción desconocida: $a (usa -h para ver el uso)" >&2; exit 1 ;;
+    -*) t unknown_opt "$a" >&2; exit 1 ;;
     *) args+=("$a") ;;
   esac
 done
 
 if [[ ${#args[@]} -gt 1 ]]; then
-  echo "Uso: genmake [nombre] [-y]   (ej: genmake factorial)" >&2
+  t usage >&2
   exit 1
 fi
 
@@ -38,27 +142,18 @@ fecha="$(date +'%b %d %Y')"
 
 valido() { [[ "$1" =~ ^[A-Za-z0-9_.-]+$ ]]; }
 
-# ---------- Datos del autor (se guardan en ~/.config/ib-tools/config) ----------
-config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
-if [[ -f "$config" ]]; then
-  # shellcheck disable=SC1090
-  source "$config"
+# ---------- Tus datos ----------
+if [[ -z "${IB_NOMBRE:-}" || -z "${IB_EMAIL:-}" ]]; then
+  if [[ -t 0 ]] && command -v ib-config >/dev/null; then
+    ib-config
+    # shellcheck disable=SC1090
+    [[ -f "$config" ]] && source "$config"
+    idioma
+  fi
 fi
 if [[ -z "${IB_NOMBRE:-}" || -z "${IB_EMAIL:-}" ]]; then
-  if [[ -t 0 ]]; then
-    echo "Primera vez: configura tus datos para las cabeceras."
-    read -rp "Nombre y apellidos: " IB_NOMBRE
-    read -rp "Correo de la universidad: " IB_EMAIL
-    if [[ -z "$IB_NOMBRE" || -z "$IB_EMAIL" ]]; then
-      echo "Error: el nombre y el correo no pueden estar vacíos." >&2
-      exit 1
-    fi
-    mkdir -p "$(dirname "$config")"
-    printf 'IB_NOMBRE=%q\nIB_EMAIL=%q\n' "$IB_NOMBRE" "$IB_EMAIL" > "$config"
-  else
-    echo "Error: faltan tus datos (nombre y correo). Ejecuta genmake en una terminal." >&2
-    exit 1
-  fi
+  t missing_data >&2
+  exit 1
 fi
 autor="$IB_NOMBRE $IB_EMAIL"
 
@@ -90,9 +185,9 @@ leer_nombre() {
       return 0
     fi
     intentos=$((intentos + 1))
-    echo "  Nombre no válido (solo letras, números, _ . -)." >&2
+    t invalid_again >&2
     if [[ $auto -eq 1 || $intentos -ge 3 ]]; then
-      echo "Error: no se pudo obtener un nombre válido." >&2
+      t name_fail >&2
       exit 1
     fi
   done
@@ -108,9 +203,9 @@ leer_numero() {
       return 0
     fi
     intentos=$((intentos + 1))
-    echo "  Escribe un número entero entre 0 y 20." >&2
+    t num_hint >&2
     if [[ $auto -eq 1 || $intentos -ge 3 ]]; then
-      echo "Error: número no válido." >&2
+      t num_fail >&2
       exit 1
     fi
   done
@@ -119,7 +214,7 @@ leer_numero() {
 # si_no "texto" defecto(s|n): devuelve 0 si la respuesta es sí
 si_no() {
   local texto="$1" def="${2:-n}" resp="" marca
-  if [[ "$def" == "s" ]]; then marca="S/n"; else marca="s/N"; fi
+  if [[ "$def" == "s" ]]; then marca="$(t yn_marks_s)"; else marca="$(t yn_marks_n)"; fi
   if [[ $auto -eq 1 ]]; then
     [[ "$def" == "s" ]]
     return
@@ -134,16 +229,16 @@ if [[ -n "${args[0]:-}" ]]; then
   nombre="${args[0]%.cc}"
   nombre="${nombre%_main}"
   if ! valido "$nombre"; then
-    echo "Error: nombre no válido: '$nombre'" >&2
+    t invalid_name "$nombre" >&2
     exit 1
   fi
 else
   sugerido="$(basename "$PWD")"
   valido "$sugerido" || sugerido=""
-  leer_nombre "Nombre del ejercicio (será también el del ejecutable)" nombre "$sugerido"
+  leer_nombre "$(t q_name)" nombre "$sugerido"
 fi
 
-leer_nombre "Nombre del archivo del programa principal (con el main)" principal "${nombre}_main"
+leer_nombre "$(t q_main)" principal "${nombre}_main"
 
 usa_funciones=0
 defecto=0
@@ -152,23 +247,23 @@ n_args=1
 arg_nombres=()
 descripcion=""
 
-if si_no "¿Crear un archivo de funciones?" n; then
+if si_no "$(t q_funcs)" n; then
   usa_funciones=1
-  leer_nombre "Nombre del archivo de funciones (.cc y .h)" funciones "$nombre"
+  leer_nombre "$(t q_funcs_name)" funciones "$nombre"
   if [[ "$funciones" == "$principal" ]]; then
-    echo "Error: el archivo de funciones no puede llamarse igual que el principal." >&2
+    t same_name >&2
     exit 1
   fi
 
-  if si_no "¿Añadir las funciones por defecto (PrintProgramPurpose y CheckCorrectParameters)?" n; then
+  if si_no "$(t q_default)" n; then
     defecto=1
-    leer_numero "¿Cuántos argumentos espera el programa (sin contar su nombre)?" n_args "1"
+    leer_numero "$(t q_nargs)" n_args "1"
     for ((i = 1; i <= n_args; i++)); do
-      if [[ "$n_args" -eq 1 ]]; then def_arg="argumento"; else def_arg="argumento$i"; fi
-      leer_nombre "Nombre del argumento $i" nom_arg "$def_arg"
+      if [[ "$n_args" -eq 1 ]]; then def_arg="$(t def_arg)"; else def_arg="$(t def_arg)$i"; fi
+      leer_nombre "$(t q_argname "$i")" nom_arg "$def_arg"
       arg_nombres+=("$nom_arg")
     done
-    leer "¿Qué hace el programa? (descripción corta)" descripcion ""
+    leer "$(t q_desc)" descripcion ""
   fi
 fi
 
@@ -180,44 +275,53 @@ done
 
 descripcion="${descripcion%.}"
 if [[ -z "$descripcion" ]]; then
-  descripcion="<describe aquí qué hace>"
+  descripcion="$(t placeholder_desc)"
 fi
 # Escapar \ y " para meterlo dentro de un literal de C++
 descripcion_cc="${descripcion//\\/\\\\}"
 descripcion_cc="${descripcion_cc//\"/\\\"}"
 
 # ---------- Resumen y confirmación ----------
-estado() { if [[ -e "$1" ]]; then echo "ya existe, no se toca"; else echo "nuevo"; fi; }
+estado() { if [[ -e "$1" ]]; then t st_exists; else t st_new; fi; }
 
 if [[ $auto -eq 0 ]]; then
   echo
-  echo "Resumen:"
-  printf '  %-26s %s\n' "Ejecutable" "$nombre"
+  t summary; echo
+  printf '  %-26s %s\n' "$(t l_exec)" "$nombre"
   if [[ -e Makefile ]]; then
-    printf '  %-26s %s\n' "Makefile" "se reescribe"
+    printf '  %-26s %s\n' "Makefile" "$(t mk_rewrite)"
   else
-    printf '  %-26s %s\n' "Makefile" "nuevo"
+    printf '  %-26s %s\n' "Makefile" "$(t st_new)"
   fi
-  printf '  %-26s %s\n' "$principal.cc" "programa principal ($(estado "$principal.cc"))"
+  printf '  %-26s %s\n' "$principal.cc" "$(t v_main "$(estado "$principal.cc")")"
   if [[ $usa_funciones -eq 1 ]]; then
-    printf '  %-26s %s\n' "$funciones.cc" "funciones ($(estado "$funciones.cc"))"
-    printf '  %-26s %s\n' "$funciones.h" "prototipos ($(estado "$funciones.h"))"
+    printf '  %-26s %s\n' "$funciones.cc" "$(t v_funcs "$(estado "$funciones.cc")")"
+    printf '  %-26s %s\n' "$funciones.h" "$(t v_protos "$(estado "$funciones.h")")"
   fi
   if [[ $defecto -eq 1 ]]; then
-    printf '  %-26s %s\n' "Funciones por defecto" "${n_args} argumento(s):${uso:- ninguno}"
-    printf '  %-26s %s\n' "Objetivo" "$descripcion"
+    printf '  %-26s %s\n' "$(t l_defaults)" "$(t v_defaults "$n_args" "${uso:-$(t v_none)}")"
+    printf '  %-26s %s\n' "$(t l_goal)" "$descripcion"
   fi
   echo
-  if ! si_no "¿Crear estos archivos?" s; then
-    echo "Cancelado, no se ha creado nada."
+  if ! si_no "$(t q_confirm)" s; then
+    t cancelled
     exit 0
   fi
 fi
 
 # ---------- Texto de las funciones por defecto ----------
+texto_constante() {
+  if [[ "$L" == es ]]; then
+    echo '// Número de argumentos esperados (sin contar el nombre del programa).'
+  else
+    echo '// Number of expected arguments (not counting the program name).'
+  fi
+}
+
 # Prototipos (para el .h)
 texto_prototipos() {
-  cat <<'EOF'
+  if [[ "$L" == es ]]; then
+    cat <<'EOF'
 // Imprime una breve descripción de lo que hace el programa.
 void PrintProgramPurpose();
 
@@ -226,11 +330,23 @@ void PrintProgramPurpose();
 void CheckCorrectParameters(const int argc, char* argv[],
                             const int kCorrectNumber);
 EOF
+  else
+    cat <<'EOF'
+// Prints a short description of what the program does.
+void PrintProgramPurpose();
+
+// Checks that the expected number of arguments was passed.
+// If not, shows the usage and ends the program.
+void CheckCorrectParameters(const int argc, char* argv[],
+                            const int kCorrectNumber);
+EOF
+  fi
 }
 
 # Definiciones (para <funciones>.cc)
 texto_definiciones() {
-  cat <<EOF
+  if [[ "$L" == es ]]; then
+    cat <<EOF
 // Imprime una breve descripción de lo que hace el programa.
 void PrintProgramPurpose() {
   std::cout << "Este programa $descripcion_cc.\\n";
@@ -247,17 +363,54 @@ void CheckCorrectParameters(const int argc, char* argv[],
   }
 }
 EOF
+  else
+    cat <<EOF
+// Prints a short description of what the program does.
+void PrintProgramPurpose() {
+  std::cout << "This program $descripcion_cc.\\n";
 }
 
-# Cabecera común (igual que skeleton.cc)
+// Checks that the expected number of arguments was passed.
+// If not, shows the usage and ends the program.
+void CheckCorrectParameters(const int argc, char* argv[],
+                            const int kCorrectNumber) {
+  if (argc - 1 != kCorrectNumber) {
+    std::cerr << "Error: wrong number of arguments.\\n"
+              << "Usage: " << argv[0] << "$uso\\n";
+    exit(EXIT_FAILURE);
+  }
+}
+EOF
+  fi
+}
+
+# ---------- Cabeceras con los datos del usuario ----------
+# Líneas de institución (se omiten las vacías)
+lineas_institucion() {
+  local asig_curso
+  asig_curso="${IB_ASIGNATURA:-}"
+  if [[ -n "${IB_CURSO:-}" ]]; then
+    asig_curso="${asig_curso:+$asig_curso }$IB_CURSO"
+  fi
+  [[ -n "${IB_UNIVERSIDAD:-}" ]] && echo "$IB_UNIVERSIDAD"
+  [[ -n "${IB_CENTRO:-}" ]] && echo "$IB_CENTRO"
+  [[ -n "${IB_TITULACION:-}" ]] && echo "$IB_TITULACION"
+  [[ -n "$asig_curso" ]] && echo "$asig_curso"
+  return 0
+}
+
+# Cabecera de un archivo de código
 cabecera() {
+  local linea lineas
+  lineas="$(lineas_institucion)"
+  echo "/**"
+  if [[ -n "$lineas" ]]; then
+    while IFS= read -r linea; do
+      echo " * $linea"
+    done <<< "$lineas"
+    echo " *"
+  fi
   cat <<EOF
-/**
- * Universidad de La Laguna
- * Escuela Superior de Ingeniería y Tecnología
- * Grado en Ingeniería Informática
- * Informática Básica 2026-2027
- *
  * @file $1
  * @author $autor
  * @date $fecha
@@ -268,12 +421,25 @@ cabecera() {
 EOF
 }
 
+# Cabecera del Makefile
+cabecera_make() {
+  local linea lineas
+  lineas="$(lineas_institucion)"
+  if [[ -n "$lineas" ]]; then
+    while IFS= read -r linea; do
+      echo "# $linea"
+    done <<< "$lineas"
+    echo "#"
+  fi
+  echo "# @author $autor"
+}
+
 # ---------- Creación de .h / .cc ----------
 crear_header() {
   local base="$1" guard
   guard="$(echo "${base}_H" | tr '[:lower:].-' '[:upper:]__')"
   if [[ -e "$base.h" ]]; then
-    echo "$base.h ya existe, no se toca."
+    t exists "$base.h"
     return 0
   fi
   {
@@ -287,13 +453,13 @@ crear_header() {
     fi
     printf '#endif  // %s\n' "$guard"
   } > "$base.h"
-  echo "$base.h creado."
+  t created "$base.h"
 }
 
 crear_fuente() {
   local base="$1"
   if [[ -e "$base.cc" ]]; then
-    echo "$base.cc ya existe, no se toca."
+    t exists "$base.cc"
     return 0
   fi
   {
@@ -306,18 +472,15 @@ crear_fuente() {
       printf '#include <iostream>\n\n'
     fi
   } > "$base.cc"
-  echo "$base.cc creado."
+  t created "$base.cc"
 }
 
 # ---------- Makefile ----------
-cat > Makefile <<'EOF'
-# Universidad de La Laguna
-# Escuela Superior de Ingeniería y Tecnología
-# Grado en Ingeniería Informática
-# Informática Básica
-#
-# @author __AUTOR__
-
+{
+  cabecera_make
+  echo
+  if [[ "$L" == es ]]; then
+    cat <<'EOF'
 # =========================================================
 # CONFIGURACIÓN DEL PROYECTO
 # PROGRAMA: nombre del ejecutable
@@ -356,16 +519,56 @@ clean:
 
 .PHONY: all clean
 EOF
+  else
+    cat <<'EOF'
+# =========================================================
+# PROJECT SETTINGS
+# PROGRAMA: name of the executable
+# MAIN: name (without .cc) of the file that contains main()
+# =========================================================
+
+# You only change these variables for each exercise/program
+PROGRAMA := __NOMBRE__
+MAIN     := __MAIN__
+
+# Executable and source files settings
+TARGET   := $(PROGRAMA)
+MAIN_SRC := $(MAIN).cc
+FUNC_SRC := $(filter-out $(MAIN_SRC),$(wildcard *.cc))
+# Compiler and flags
+CXX      := g++
+CXXFLAGS := -Wall -Wextra -std=c++17
+
+# Automatic generation of object files (.o)
+OBJS     := $(MAIN_SRC:.cc=.o) $(FUNC_SRC:.cc=.o)
+
+# Main rule
+all: $(TARGET)
+
+# Link the executable
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Compile .cc into .o
+%.o: %.cc $(wildcard *.h)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Remove binaries, objects and Vim swap files
+clean:
+	rm -f *.o $(TARGET) .*.swp
+
+.PHONY: all clean
+EOF
+  fi
+} > Makefile
 sed -i -e "s/__NOMBRE__/$nombre/" -e "s/__MAIN__/$principal/" Makefile
-autor_esc="$(printf '%s' "$autor" | sed 's/[&|\\]/\\&/g')"
-sed -i "s|__AUTOR__|$autor_esc|" Makefile
-echo "Makefile creado para '$nombre'."
+t mk_created "$nombre"
 
 # ---------- Programa principal ----------
 if [[ -e "$principal.cc" ]]; then
-  echo "$principal.cc ya existe, no se toca."
+  t exists "$principal.cc"
   if [[ $defecto -eq 1 ]]; then
-    echo "Aviso: añade tú las llamadas a PrintProgramPurpose y CheckCorrectParameters en $principal.cc."
+    t warn_main "$principal.cc"
   fi
 else
   if [[ -f "$skeleton" ]]; then
@@ -401,7 +604,7 @@ else
   if [[ $defecto -eq 1 ]]; then
     bloque="$(mktemp)"
     {
-      echo '// Número de argumentos esperados (sin contar el nombre del programa).'
+      texto_constante
       echo "const int kCorrectNumber = $n_args;"
       echo
       echo 'int main(int argc, char* argv[]) {'
@@ -419,11 +622,16 @@ else
     ' "$principal.cc" > "$principal.cc.tmp" && mv "$principal.cc.tmp" "$principal.cc"
     rm -f "$bloque"
   fi
-  echo "$principal.cc creado."
+  t created "$principal.cc"
 fi
 
 # ---------- Archivo de funciones ----------
 if [[ $usa_funciones -eq 1 ]]; then
   crear_header "$funciones"
   crear_fuente "$funciones"
+fi
+
+# ---------- Aviso discreto de versión nueva (como mucho una vez a la semana) ----------
+if [[ $auto -eq 0 ]] && command -v ib-update >/dev/null; then
+  ib-update --aviso || true
 fi

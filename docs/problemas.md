@@ -1,11 +1,11 @@
 # Problemas frecuentes
 
-## `genmake: command not found` (o `run`, o `estilo`)
+## `genmake: command not found` (o `run`, `estilo`, `ib-config`, `ib-update`)
 
 La terminal todavía no conoce la carpeta donde están los comandos. Prueba, por orden:
 
 1. Abre una terminal nueva, o ejecuta `source ~/.bashrc`.
-2. Comprueba que están instalados: `ls ~/.local/bin`. Deben aparecer `genmake`, `run` y `estilo`. Si no, vuelve a ejecutar `./install.sh`.
+2. Comprueba que están instalados: `ls ~/.local/bin`. Deben aparecer `genmake`, `run`, `estilo`, `ib-config` e `ib-update`. Si no, vuelve a ejecutar `./install.sh`.
 3. Comprueba el `PATH`: `echo $PATH`. Debe incluir `/home/tu-usuario/.local/bin`. Si no, añádelo con:
 
    ```bash
@@ -14,13 +14,13 @@ La terminal todavía no conoce la carpeta donde están los comandos. Prueba, por
 
 ## `Error: faltan tus datos (nombre y correo)`
 
-`genmake` no encuentra tu archivo de configuración y no está en una terminal interactiva. Ejecuta `./install.sh` otra vez, o crea el archivo a mano:
+`genmake` no encuentra tu archivo de configuración y no está en una terminal interactiva. Ejecuta `ib-config` en una terminal normal (o `./install.sh` otra vez), o crea el archivo a mano:
 
 ```bash
 mkdir -p ~/.config/ib-tools
 cat > ~/.config/ib-tools/config <<'EOF'
 IB_NOMBRE='Tu Nombre Apellidos'
-IB_EMAIL=tu.correo@ull.edu.es
+IB_EMAIL=tu.correo@universidad.es
 EOF
 ```
 
@@ -65,7 +65,11 @@ El compilador no encuentra la definición de una función. Revisa que:
 
 ## Quiero cambiar mi nombre o mi correo
 
-Mira [Cambiar tu nombre o tu correo](instalacion.md#cambiar-tu-nombre-o-tu-correo).
+Ejecuta `ib-config`. Mira [ib-config e ib-update](perfil.md).
+
+## `ib-update` falla o no encuentra versión nueva
+
+Necesita `curl` e internet. Si el repositorio está clonado, también puedes hacer `git pull && ./install.sh --actualizar`.
 
 ## Sigo atascado
 

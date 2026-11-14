@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# ib-config: tu perfil (nombre, universidad, asignatura...) para las cabeceras.
+# ib-config: your profile (name, university, subject...) used in file headers.
+#
+#   ib-config            pregunta / edita tu perfil (Enter = conservar)
+#   ib-config --ver      muestra el perfil actual  (--show)
+#   ib-config --ruta     muestra dónde se guarda   (--path)
+
+set -euo pipefail
+
+config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
+# shellcheck disable=SC1090
+[[ -f "$config" ]] && source "$config"
+
+# Idioma: IB_LANG guardado, o el del sistema
+sistema="${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}"
+case "${IB_LANG:-$sistema}" in es*|ES*) L=es ;; *) L=en ;; esac
+tr_() { if [[ "$L" == es ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi; }
+
+# Curso académico propuesto según la fecha (de septiembre en adelante: año-año+1)
+anio="$(date +%Y)"; mes="$(date +%-m)"
+if [[ "$mes" -ge 9 ]]; then curso_def="$anio-$((anio + 1))"; else curso_def="$((anio - 1))-$anio"; fi
+
+case "${1:-}" in
+  --ruta|--path) echo "$config"; exit 0 ;;
+  --ver|--show)
+    [[ -f "$config" ]] || { tr_ 'Aún no hay perfil. Ejecuta ib-config.' 'No profile yet. Run ib-config.'; echo; exit 1; }
+    printf '  %-14s %s\n' "$(tr_ Nombre Name)" "${IB_NOMBRE:-}" \
+      "$(tr_ Correo Email)" "${IB_EMAIL:-}" \
+      "$(tr_ Universidad University)" "${IB_UNIVERSIDAD:-}" \
+      "$(tr_ Centro School)" "${IB_CENTRO:-}" \
+      "$(tr_ Titulación Degree)" "${IB_TITULACION:-}" \
+      "$(tr_ Asignatura Subject)" "${IB_ASIGNATURA:-}" \
+      "$(tr_ Curso 'Academic year')" "${IB_CURSO:-}" \
+      "$(tr_ Idioma Language)" "${IB_LANG:-auto ($L)}"
+    exit 0 ;;
+  -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  "") ;;
+  *) echo "?: $1" >&2; exit 1 ;;
+esac
+
+entrada=/dev/stdin
+[[ -t 0 ]] || entrada=/dev/tty
+
+# pedir variable "texto" "defecto" obligatorio(0/1)
+pedir() {
+  local var="$1" texto="$2" def="$3" obl="$4" resp=""
+  while true; do
+    if [[ -n "$def" ]]; then read -rp "$texto [$def]: " resp <"$entrada" || resp=""
+    else read -rp "$texto: " resp <"$entrada" || resp=""; fi
+    resp="${resp:-$def}"
+    if [[ -z "$resp" && "$obl" == 1 ]]; then
+      tr_ '  Este dato es obligatorio.' '  This one is required.' >&2; echo >&2
+      continue
+    fi
+    printf -v "$var" '%s' "$resp"
+    return 0
+  done
+}
+
+tr_ '== Tu perfil (Enter conserva el valor entre corchetes) ==' '== Your profile (Enter keeps the value in brackets) =='; echo
+pedir n_lang   "$(tr_ 'Idioma / Language (es/en)' 'Language / Idioma (es/en)')" "${IB_LANG:-${L}}" 1
+case "$n_lang" in es*|ES*) n_lang=es ;; *) n_lang=en ;; esac
+L="$n_lang"
+pedir n_nombre "$(tr_ 'Nombre y apellidos' 'Full name')" "${IB_NOMBRE:-}" 1
+pedir n_email  "$(tr_ 'Correo de la universidad' 'University email')" "${IB_EMAIL:-}" 1
+pedir n_uni    "$(tr_ 'Universidad' 'University')" "${IB_UNIVERSIDAD:-}" 0
+pedir n_centro "$(tr_ 'Centro / facultad / escuela' 'School / faculty')" "${IB_CENTRO:-}" 0
+pedir n_titu   "$(tr_ 'Titulación' 'Degree')" "${IB_TITULACION:-}" 0
+pedir n_asig   "$(tr_ 'Asignatura' 'Subject')" "${IB_ASIGNATURA:-}" 0
+pedir n_curso  "$(tr_ 'Curso académico' 'Academic year')" "${IB_CURSO:-$curso_def}" 0
+
+mkdir -p "$(dirname "$config")"
+{
+  printf 'IB_LANG=%q\n' "$n_lang"
+  printf 'IB_NOMBRE=%q\n' "$n_nombre"
+  printf 'IB_EMAIL=%q\n' "$n_email"
+  printf 'IB_UNIVERSIDAD=%q\n' "$n_uni"
+  printf 'IB_CENTRO=%q\n' "$n_centro"
+  printf 'IB_TITULACION=%q\n' "$n_titu"
+  printf 'IB_ASIGNATURA=%q\n' "$n_asig"
+  printf 'IB_CURSO=%q\n' "$n_curso"
+} > "$config"
+tr_ "Perfil guardado en $config" "Profile saved to $config"; echo

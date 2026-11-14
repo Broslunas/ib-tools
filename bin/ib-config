@@ -25,14 +25,15 @@ case "${1:-}" in
   --ruta|--path) echo "$config"; exit 0 ;;
   --ver|--show)
     [[ -f "$config" ]] || { tr_ 'Aún no hay perfil. Ejecuta ib-config.' 'No profile yet. Run ib-config.'; echo; exit 1; }
-    printf '  %-14s %s\n' "$(tr_ Nombre Name)" "${IB_NOMBRE:-}" \
-      "$(tr_ Correo Email)" "${IB_EMAIL:-}" \
-      "$(tr_ Universidad University)" "${IB_UNIVERSIDAD:-}" \
-      "$(tr_ Centro School)" "${IB_CENTRO:-}" \
-      "$(tr_ Titulación Degree)" "${IB_TITULACION:-}" \
-      "$(tr_ Asignatura Subject)" "${IB_ASIGNATURA:-}" \
-      "$(tr_ Curso 'Academic year')" "${IB_CURSO:-}" \
-      "$(tr_ Idioma Language)" "${IB_LANG:-auto ($L)}"
+    fila() { local pad=$((14 - ${#1})); ((pad < 1)) && pad=1; printf '  %s%*s%s\n' "$1" "$pad" '' "$2"; }
+    fila "$(tr_ Nombre Name)" "${IB_NOMBRE:-}"
+    fila "$(tr_ Correo Email)" "${IB_EMAIL:-}"
+    fila "$(tr_ Universidad University)" "${IB_UNIVERSIDAD:-}"
+    fila "$(tr_ Centro School)" "${IB_CENTRO:-}"
+    fila "$(tr_ Titulación Degree)" "${IB_TITULACION:-}"
+    fila "$(tr_ Asignatura Subject)" "${IB_ASIGNATURA:-}"
+    fila "$(tr_ Curso 'Academic year')" "${IB_CURSO:-}"
+    fila "$(tr_ Idioma Language)" "${IB_LANG:-auto ($L)}"
     exit 0 ;;
   -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
   "") ;;

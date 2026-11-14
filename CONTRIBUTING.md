@@ -23,6 +23,17 @@ GitHub Actions ejecuta las pruebas y crea la release con la lista de cambios. `i
 
 ## Página web
 
-La página está en `docs/index.html`. Para publicarla: en GitHub, **Settings → Pages → Build and deployment → Deploy from a branch → `main` / `/docs`**. Quedará en https://broslunas.github.io/ib-tools/.
+La web está publicada en https://tools.broslunas.com (Coolify, build pack Static, carpeta base `/docs`).
 
-Los enlaces a la documentación apuntan a los `.md` del repositorio en github.com.
+`docs/index.html` se genera, no se edita a mano:
+
+```bash
+python3 site/capture.py "$PWD" site/sessions.json   # opcional: vuelve a capturar las sesiones reales de la terminal
+python3 site/build.py                                # genera docs/index.html
+```
+
+- `site/template.html`: la página (estilos, textos en español e inglés y animaciones).
+- `site/sessions.json`: salidas reales de los comandos que reproduce la terminal animada.
+- `site/changelog.json`: las novedades que salen en la web, en los dos idiomas.
+
+Cuando cambies `VERSION`, añade la versión a `site/changelog.json` y vuelve a ejecutar `site/build.py`.

@@ -1,6 +1,6 @@
 # ib-tools
 
-*Español: [README.md](README.md)*
+*Español: [README.md](README.md) · Website: [tools.broslunas.com](https://tools.broslunas.com)*
 
 Small commands that save you repetitive work in **C++** programming labs at any university: create the Makefile and files of each exercise, compile and run with one command, and check code style before handing in.
 
@@ -62,7 +62,7 @@ Screenshots live in the Spanish docs ([docs/](docs/instalacion.md)).
 
 - **Tab** completes commands and options.
 - **Colors** in `run` and `estilo`; disable with `NO_COLOR=1`.
-- **Website** in [docs/index.html](docs/index.html) (published via GitHub Pages, see [CONTRIBUTING.md](CONTRIBUTING.md)).
+- **Website:** [tools.broslunas.com](https://tools.broslunas.com).
 - **Problems or ideas:** open an [issue](https://github.com/Broslunas/ib-tools/issues/new/choose).
 - **Versions:** [CHANGELOG.md](CHANGELOG.md) and [releases](https://github.com/Broslunas/ib-tools/releases).
 

@@ -1,5 +1,10 @@
 # Cambios / Changelog
 
+## 1.3.0
+- Web nueva: https://tools.broslunas.com (fuente en `site/`).
+- `run` y `estilo` también hablan inglés.
+- `ib-config --ver` alinea bien los campos con tildes.
+
 ## 1.2.0
 - Nuevo comando `nuevo <nombre>`: crea la carpeta del ejercicio y lanza `genmake` dentro.
 - Autocompletado con Tab para todos los comandos.

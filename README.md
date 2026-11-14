@@ -1,6 +1,6 @@
 # ib-tools
 
-*English: [README.en.md](README.en.md)*
+*English: [README.en.md](README.en.md) · Web: [tools.broslunas.com](https://tools.broslunas.com)*
 
 Comandos para ahorrarte trabajo repetitivo en las prácticas de programación en **C++** de cualquier universidad: crear el Makefile y los archivos de cada ejercicio, compilar y ejecutar con un solo comando, y revisar el estilo del código antes de entregar.
 
@@ -63,7 +63,7 @@ estilo               # revisa el estilo antes de entregar
 
 - **Tab** completa los comandos y sus opciones.
 - **Colores** en `run` y `estilo`; se quitan con `NO_COLOR=1`.
-- **Web** de presentación en [docs/index.html](docs/index.html) (se publica con GitHub Pages, ver [CONTRIBUTING.md](CONTRIBUTING.md)).
+- **Web:** [tools.broslunas.com](https://tools.broslunas.com).
 - **Problemas o ideas:** abre un [issue](https://github.com/Broslunas/ib-tools/issues/new/choose).
 - **Versiones:** [CHANGELOG.md](CHANGELOG.md) y [releases](https://github.com/Broslunas/ib-tools/releases).
 

@@ -6,6 +6,13 @@
 
 set -uo pipefail
 
+# Idioma / language: IB_LANG del perfil o el del sistema
+config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
+# shellcheck disable=SC1090
+[[ -f "$config" ]] && source "$config"
+case "${IB_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}" in es*|ES*) L=es ;; *) L=en ;; esac
+tr_() { if [[ "$L" == es ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi; }
+
 # Colores: solo en terminal y si no está definida NO_COLOR (https://no-color.org)
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
   C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_CYN=$'\e[36m'; C_DIM=$'\e[2m'; C_B=$'\e[1m'; C_0=$'\e[0m'
@@ -14,14 +21,14 @@ else
 fi
 
 if [[ ! -f Makefile ]]; then
-  echo "Error: no hay Makefile en este directorio (créalo con genmake <nombre>)." >&2
+  echo "$(tr_ "Error: no hay Makefile en este directorio (créalo con genmake <nombre>)." "Error: there is no Makefile in this folder (create one with genmake <name>).")" >&2
   exit 1
 fi
 
 programa="$(sed -n 's/^[[:space:]]*PROGRAMA[[:space:]]*:\?=[[:space:]]*\([^[:space:]#]*\).*/\1/p' Makefile | head -n1)"
 
 if [[ -z "$programa" ]]; then
-  echo "Error: no encuentro la variable PROGRAMA en el Makefile." >&2
+  echo "$(tr_ "Error: no encuentro la variable PROGRAMA en el Makefile." "Error: PROGRAMA variable not found in the Makefile.")" >&2
   exit 1
 fi
 
@@ -32,17 +39,17 @@ if command -v estilo >/dev/null; then
   estilo -q || true
 fi
 
-echo "${C_CYN}${C_B}==> Compilando $programa${C_0}"
+echo "${C_CYN}${C_B}==> $(tr_ Compilando Building) $programa${C_0}"
 if ! make; then
-  echo "${C_RED}${C_B}==> Error de compilación, no se ejecuta.${C_0}" >&2
+  echo "${C_RED}${C_B}==> $(tr_ "Error de compilación, no se ejecuta." "Build failed, not running.")${C_0}" >&2
   exit 1
 fi
 
-echo "${C_CYN}${C_B}==> Ejecutando ./$programa $*${C_0}"
+echo "${C_CYN}${C_B}==> $(tr_ Ejecutando Running) ./$programa $*${C_0}"
 echo "${C_DIM}----------------------------------------${C_0}"
 ./"$programa" "$@"
 codigo=$?
 echo "${C_DIM}----------------------------------------${C_0}"
 if [[ $codigo -eq 0 ]]; then col="$C_GRN"; else col="$C_RED"; fi
-echo "${col}${C_B}==> Terminó con código $codigo${C_0}"
+echo "${col}${C_B}==> $(tr_ "Terminó con código" "Exited with code") $codigo${C_0}"
 exit "$codigo"

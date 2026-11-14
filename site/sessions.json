@@ -1,0 +1,354 @@
+{
+ "es": {
+  "nuevo": [
+   {
+    "p": "Nombre del archivo del programa principal (con el main) [cuadrado_main]: ",
+    "a": ""
+   },
+   {
+    "p": "¿Crear un archivo de funciones? [s/N] ",
+    "a": "s"
+   },
+   {
+    "p": "Nombre del archivo de funciones (.cc y .h) [cuadrado]: ",
+    "a": ""
+   },
+   {
+    "p": "¿Añadir las funciones por defecto (PrintProgramPurpose y CheckCorrectParameters)? [s/N] ",
+    "a": "s"
+   },
+   {
+    "p": "¿Cuántos argumentos espera el programa (sin contar su nombre)? [1]: ",
+    "a": ""
+   },
+   {
+    "p": "Nombre del argumento 1 [argumento]: ",
+    "a": "numero"
+   },
+   {
+    "p": "¿Qué hace el programa? (descripción corta): ",
+    "a": "calcula el cuadrado de un número"
+   },
+   "",
+   "Resumen:",
+   "  Ejecutable                 cuadrado",
+   "  Makefile                   nuevo",
+   "  cuadrado_main.cc           programa principal (nuevo)",
+   "  cuadrado.cc                funciones (nuevo)",
+   "  cuadrado.h                 prototipos (nuevo)",
+   "  Funciones por defecto      1 argumento(s): <numero>",
+   "  Objetivo                   calcula el cuadrado de un número",
+   "",
+   {
+    "p": "¿Crear estos archivos? [S/n] ",
+    "a": ""
+   },
+   "Makefile creado para 'cuadrado'.",
+   "cuadrado_main.cc creado.",
+   "cuadrado.h creado.",
+   "cuadrado.cc creado.",
+   "",
+   "Ahora entra en la carpeta:  cd cuadrado"
+  ],
+  "ls": [
+   "Makefile",
+   "cuadrado.cc",
+   "cuadrado.h",
+   "cuadrado_main.cc"
+  ],
+  "head": [
+   "/**",
+   " * Universidad de Ejemplo",
+   " * Escuela de Ingeniería",
+   " * Grado en Informática",
+   " * Programación 2026-2027",
+   " *",
+   " * @file cuadrado_main.cc",
+   " * @author Ana García López ana.garcia@ejemplo.edu",
+   " * @date Nov 14 2026",
+   " * @brief",
+   " * @bug There are no known bugs",
+   " * @see",
+   " */"
+  ],
+  "main": [
+   "",
+   "#include <iostream>",
+   "",
+   "#include \"cuadrado.h\"",
+   "",
+   "// Número de argumentos esperados (sin contar el nombre del programa).",
+   "const int kCorrectNumber = 1;",
+   "",
+   "int main(int argc, char* argv[]) {",
+   "  PrintProgramPurpose();",
+   "  CheckCorrectParameters(argc, argv, kCorrectNumber);",
+   "",
+   "  return 0;",
+   "}"
+  ],
+  "wc": [
+   "  44 Makefile",
+   "  34 cuadrado.cc",
+   "  27 cuadrado_main.cc",
+   "  26 cuadrado.h",
+   " 131 total"
+  ],
+  "makefile": [
+   "PROGRAMA := cuadrado",
+   "MAIN     := cuadrado_main",
+   "MAIN_SRC := $(MAIN).cc",
+   "CXXFLAGS := -Wall -Wextra -std=c++17",
+   "clean:"
+  ],
+  "run_noarg": [
+   "==> Compilando cuadrado",
+   "g++ -Wall -Wextra -std=c++17 -c cuadrado_main.cc -o cuadrado_main.o",
+   "g++ -Wall -Wextra -std=c++17 -c cuadrado.cc -o cuadrado.o",
+   "g++ -Wall -Wextra -std=c++17 -o cuadrado cuadrado_main.o cuadrado.o",
+   "==> Ejecutando ./cuadrado ",
+   "----------------------------------------",
+   "Este programa calcula el cuadrado de un número.",
+   "Error: número de argumentos incorrecto.",
+   "Modo de uso: ./cuadrado <numero>",
+   "----------------------------------------",
+   "==> Terminó con código 1"
+  ],
+  "run": [
+   "==> Compilando cuadrado",
+   "g++ -Wall -Wextra -std=c++17 -c cuadrado_main.cc -o cuadrado_main.o",
+   "g++ -Wall -Wextra -std=c++17 -c cuadrado.cc -o cuadrado.o",
+   "g++ -Wall -Wextra -std=c++17 -o cuadrado cuadrado_main.o cuadrado.o",
+   "==> Ejecutando ./cuadrado 7",
+   "----------------------------------------",
+   "Este programa calcula el cuadrado de un número.",
+   "7^2 = 49",
+   "----------------------------------------",
+   "==> Terminó con código 0"
+  ],
+  "estilo_ok": [
+   "==> Estilo correcto en: cuadrado.cc cuadrado_main.cc cuadrado.h"
+  ],
+  "estilo_bad": [
+   "==> 4 aviso(s) de estilo:",
+   "  mal.cc:2:  Do not use namespace using-directives.  Use using-declarations instead.  [build/namespaces] [5]",
+   "         2 | using namespace std;",
+   "  mal.cc:3:  Missing space before {  [whitespace/braces] [5]",
+   "         3 | int Cuadrado(int n){",
+   "  mal.cc:7:  Missing space before {  [whitespace/braces] [5]",
+   "         7 | int main(){",
+   "  mal.cc:8:  Missing spaces around <<  [whitespace/operators] [3]",
+   "         8 |   cout<<Cuadrado(4)<<endl;",
+   "    (prueba 'estilo -f' para corregir el formato automáticamente)",
+   "==> Avisos del compilador (-Wall -Wextra):",
+   "  mal.cc: In function ‘int Cuadrado(int)’:",
+   "  mal.cc:4:7: warning: unused variable ‘sin_usar’ [-Wunused-variable]",
+   "      4 |   int sin_usar;",
+   "        |       ^~~~~~~~"
+  ],
+  "estilo_f": [
+   "==> Formato corregido con clang-format (estilo: Google): mal.cc",
+   "==> 1 aviso(s) de estilo:",
+   "  mal.cc:2:  Do not use namespace using-directives.  Use using-declarations instead.  [build/namespaces] [5]",
+   "         2 | using namespace std;",
+   "==> Avisos del compilador (-Wall -Wextra):",
+   "  mal.cc: In function ‘int Cuadrado(int)’:",
+   "  mal.cc:4:7: warning: unused variable ‘sin_usar’ [-Wunused-variable]",
+   "      4 |   int sin_usar;",
+   "        |       ^~~~~~~~"
+  ],
+  "config": [
+   "  Nombre        Ana García López",
+   "  Correo        ana.garcia@ejemplo.edu",
+   "  Universidad   Universidad de Ejemplo",
+   "  Centro        Escuela de Ingeniería",
+   "  Titulación    Grado en Informática",
+   "  Asignatura    Programación",
+   "  Curso         2026-2027",
+   "  Idioma        es"
+  ],
+  "version": [
+   "1.2.0"
+  ],
+  "genmake_y": [
+   "Makefile creado para 'rapido'.",
+   "rapido_main.cc creado."
+  ]
+ },
+ "en": {
+  "nuevo": [
+   {
+    "p": "Name of the main program file (the one with main()) [square_main]: ",
+    "a": ""
+   },
+   {
+    "p": "Create a functions file? [y/N] ",
+    "a": "y"
+   },
+   {
+    "p": "Name of the functions file (.cc and .h) [square]: ",
+    "a": ""
+   },
+   {
+    "p": "Add the default functions (PrintProgramPurpose and CheckCorrectParameters)? [y/N] ",
+    "a": "y"
+   },
+   {
+    "p": "How many arguments does the program expect (not counting its name)? [1]: ",
+    "a": ""
+   },
+   {
+    "p": "Name of argument 1 [argument]: ",
+    "a": "number"
+   },
+   {
+    "p": "What does the program do? (short description): ",
+    "a": "computes the square of a number"
+   },
+   "",
+   "Summary:",
+   "  Executable                 square",
+   "  Makefile                   new",
+   "  square_main.cc             main program (new)",
+   "  square.cc                  functions (new)",
+   "  square.h                   prototypes (new)",
+   "  Default functions          1 argument(s): <number>",
+   "  Goal                       computes the square of a number",
+   "",
+   {
+    "p": "Create these files? [Y/n] ",
+    "a": ""
+   },
+   "Makefile created for 'square'.",
+   "square_main.cc created.",
+   "square.h created.",
+   "square.cc created.",
+   "",
+   "Now enter the folder:  cd square"
+  ],
+  "ls": [
+   "Makefile",
+   "square.cc",
+   "square.h",
+   "square_main.cc"
+  ],
+  "head": [
+   "/**",
+   " * Example University",
+   " * School of Engineering",
+   " * BSc Computer Science",
+   " * Programming 2026-2027",
+   " *",
+   " * @file square_main.cc",
+   " * @author Alex Morgan alex.morgan@example.edu",
+   " * @date Nov 14 2026",
+   " * @brief",
+   " * @bug There are no known bugs",
+   " * @see",
+   " */"
+  ],
+  "main": [
+   "",
+   "#include <iostream>",
+   "",
+   "#include \"square.h\"",
+   "",
+   "// Number of expected arguments (not counting the program name).",
+   "const int kCorrectNumber = 1;",
+   "",
+   "int main(int argc, char* argv[]) {",
+   "  PrintProgramPurpose();",
+   "  CheckCorrectParameters(argc, argv, kCorrectNumber);",
+   "",
+   "  return 0;",
+   "}"
+  ],
+  "wc": [
+   "  44 Makefile",
+   "  34 square.cc",
+   "  27 square_main.cc",
+   "  26 square.h",
+   " 131 total"
+  ],
+  "makefile": [
+   "PROGRAMA := square",
+   "MAIN     := square_main",
+   "MAIN_SRC := $(MAIN).cc",
+   "CXXFLAGS := -Wall -Wextra -std=c++17",
+   "clean:"
+  ],
+  "run_noarg": [
+   "==> Building square",
+   "g++ -Wall -Wextra -std=c++17 -c square_main.cc -o square_main.o",
+   "g++ -Wall -Wextra -std=c++17 -c square.cc -o square.o",
+   "g++ -Wall -Wextra -std=c++17 -o square square_main.o square.o",
+   "==> Running ./square ",
+   "----------------------------------------",
+   "This program computes the square of a number.",
+   "Error: wrong number of arguments.",
+   "Usage: ./square <number>",
+   "----------------------------------------",
+   "==> Exited with code 1"
+  ],
+  "run": [
+   "==> Building square",
+   "g++ -Wall -Wextra -std=c++17 -c square_main.cc -o square_main.o",
+   "g++ -Wall -Wextra -std=c++17 -c square.cc -o square.o",
+   "g++ -Wall -Wextra -std=c++17 -o square square_main.o square.o",
+   "==> Running ./square 7",
+   "----------------------------------------",
+   "This program computes the square of a number.",
+   "7^2 = 49",
+   "----------------------------------------",
+   "==> Exited with code 0"
+  ],
+  "estilo_ok": [
+   "==> Style OK in: square.cc square_main.cc square.h"
+  ],
+  "estilo_bad": [
+   "==> 4 style warning(s):",
+   "  messy.cc:2:  Do not use namespace using-directives.  Use using-declarations instead.  [build/namespaces] [5]",
+   "         2 | using namespace std;",
+   "  messy.cc:3:  Missing space before {  [whitespace/braces] [5]",
+   "         3 | int Square(int n){",
+   "  messy.cc:7:  Missing space before {  [whitespace/braces] [5]",
+   "         7 | int main(){",
+   "  messy.cc:8:  Missing spaces around <<  [whitespace/operators] [3]",
+   "         8 |   cout<<Square(4)<<endl;",
+   "    (try 'estilo -f' to fix formatting automatically)",
+   "==> Compiler warnings (-Wall -Wextra):",
+   "  messy.cc: In function ‘int Square(int)’:",
+   "  messy.cc:4:7: warning: unused variable ‘unused’ [-Wunused-variable]",
+   "      4 |   int unused;",
+   "        |       ^~~~~~"
+  ],
+  "estilo_f": [
+   "==> Formatting fixed with clang-format (style: Google): messy.cc",
+   "==> 1 style warning(s):",
+   "  messy.cc:2:  Do not use namespace using-directives.  Use using-declarations instead.  [build/namespaces] [5]",
+   "         2 | using namespace std;",
+   "==> Compiler warnings (-Wall -Wextra):",
+   "  messy.cc: In function ‘int Square(int)’:",
+   "  messy.cc:4:7: warning: unused variable ‘unused’ [-Wunused-variable]",
+   "      4 |   int unused;",
+   "        |       ^~~~~~"
+  ],
+  "config": [
+   "  Name          Alex Morgan",
+   "  Email         alex.morgan@example.edu",
+   "  University    Example University",
+   "  School        School of Engineering",
+   "  Degree        BSc Computer Science",
+   "  Subject       Programming",
+   "  Academic year 2026-2027",
+   "  Language      en"
+  ],
+  "version": [
+   "1.2.0"
+  ],
+  "genmake_y": [
+   "Makefile created for 'quick'.",
+   "quick_main.cc created."
+  ]
+ }
+}

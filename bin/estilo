@@ -7,6 +7,13 @@
 
 set -uo pipefail
 
+# Idioma / language: IB_LANG del perfil o el del sistema
+config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
+# shellcheck disable=SC1090
+[[ -f "$config" ]] && source "$config"
+case "${IB_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}" in es*|ES*) L=es ;; *) L=en ;; esac
+tr_() { if [[ "$L" == es ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi; }
+
 # Colores: solo en terminal y si no está definida NO_COLOR (https://no-color.org)
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
   C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_CYN=$'\e[36m'; C_DIM=$'\e[2m'; C_B=$'\e[1m'; C_0=$'\e[0m'
@@ -23,7 +30,7 @@ for a in "$@"; do
     -q) breve=1 ;;
     --sin-color) C_RED=""; C_GRN=""; C_YEL=""; C_CYN=""; C_DIM=""; C_B=""; C_0="" ;;
     -h|--help)
-      echo "Uso: estilo [-f] [-q] [--sin-color] [archivos...]   (-f corrige el formato con clang-format)"
+      tr_ "Uso: estilo [-f] [-q] [--sin-color] [archivos...]   (-f corrige el formato con clang-format)" "Usage: estilo [-f] [-q] [--sin-color] [files...]   (-f fixes formatting with clang-format)"; echo
       exit 0 ;;
     *) archivos+=("$a") ;;
   esac
@@ -36,13 +43,13 @@ if [[ ${#archivos[@]} -eq 0 ]]; then
 fi
 
 if [[ ${#archivos[@]} -eq 0 ]]; then
-  [[ $breve -eq 1 ]] || echo "No hay archivos .cc ni .h en esta carpeta."
+  [[ $breve -eq 1 ]] || { tr_ "No hay archivos .cc ni .h en esta carpeta." "No .cc or .h files in this folder."; echo; }
   exit 0
 fi
 
 for f in "${archivos[@]}"; do
   if [[ ! -f "$f" ]]; then
-    echo "Error: no existe '$f'." >&2
+    echo "$(tr_ "Error: no existe" "Error: not found:") '$f'." >&2
     exit 1
   fi
 done
@@ -54,7 +61,7 @@ CPPLINT="$(command -v cpplint || true)"
 # ---------- Corrección de formato ----------
 if [[ $corregir -eq 1 ]]; then
   if ! command -v clang-format >/dev/null; then
-    echo "Error: clang-format no está instalado (sudo apt install clang-format)." >&2
+    echo "$(tr_ "Error: clang-format no está instalado" "Error: clang-format is not installed") (sudo apt install clang-format)." >&2
     exit 1
   fi
   # Si hay un .clang-format en la carpeta o en alguna superior, se usa; si no, Google.
@@ -65,14 +72,14 @@ if [[ $corregir -eq 1 ]]; then
     dir="$(dirname "$dir")"
   done
   clang-format -i -style="$estilo_cf" "${archivos[@]}"
-  echo "==> Formato corregido con clang-format (estilo: $estilo_cf): ${archivos[*]}"
+  echo "==> $(tr_ "Formato corregido con clang-format (estilo:" "Formatting fixed with clang-format (style:") $estilo_cf): ${archivos[*]}"
 fi
 
 hay_avisos=0
 
 # ---------- Revisión con cpplint ----------
 if [[ -z "$CPPLINT" ]]; then
-  echo "Aviso: cpplint no está instalado (pipx install cpplint); se omite esa revisión." >&2
+  echo "$(tr_ "Aviso: cpplint no está instalado (pipx install cpplint); se omite esa revisión." "Warning: cpplint is not installed (pipx install cpplint); skipping that check.")" >&2
 else
   # Filtros: sin aviso de copyright, de directorio en los #include "x.h"
   # ni de include guards basados en la ruta completa (no tienen sentido aquí)
@@ -84,7 +91,7 @@ else
   if [[ -n "$avisos" ]]; then
     hay_avisos=1
     n="$(printf '%s\n' "$avisos" | wc -l)"
-    echo "${C_YEL}${C_B}==> $n aviso(s) de estilo:${C_0}"
+    echo "${C_YEL}${C_B}==> $n $(tr_ "aviso(s) de estilo:" "style warning(s):")${C_0}"
     while IFS= read -r linea; do
       echo "  $linea"
       if [[ "$linea" =~ ^([^:]+):([0-9]+): ]]; then
@@ -96,7 +103,7 @@ else
       fi
     done <<< "$avisos"
     if [[ $breve -eq 0 && $corregir -eq 0 ]]; then
-      echo "    (prueba 'estilo -f' para corregir el formato automáticamente)"
+      echo "    $(tr_ "(prueba 'estilo -f' para corregir el formato automáticamente)" "(try 'estilo -f' to fix formatting automatically)")"
     fi
   fi
 fi
@@ -114,13 +121,13 @@ if [[ $breve -eq 0 ]] && command -v g++ >/dev/null; then
   done
   if [[ -n "$avisos_cc" ]]; then
     hay_avisos=1
-    echo "${C_YEL}${C_B}==> Avisos del compilador (-Wall -Wextra):${C_0}"
+    echo "${C_YEL}${C_B}==> $(tr_ "Avisos del compilador" "Compiler warnings") (-Wall -Wextra):${C_0}"
     printf '%s' "$avisos_cc" | sed "s/^/  /; s/warning:/${C_YEL}warning:${C_0}/; s/error:/${C_RED}error:${C_0}/"
   fi
 fi
 
 if [[ $hay_avisos -eq 0 ]]; then
-  [[ $breve -eq 1 ]] || echo "${C_GRN}${C_B}==> Estilo correcto en: ${archivos[*]}${C_0}"
+  [[ $breve -eq 1 ]] || echo "${C_GRN}${C_B}==> $(tr_ "Estilo correcto en:" "Style OK in:") ${archivos[*]}${C_0}"
   exit 0
 fi
 exit 1

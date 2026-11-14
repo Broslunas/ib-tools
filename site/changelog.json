@@ -1,0 +1,14 @@
+{
+ "es": [
+  {"v": "1.3.0", "items": ["Web nueva en <code>tools.broslunas.com</code>.", "<code>run</code> y <code>estilo</code> también hablan inglés.", "<code>ib-config --ver</code> alinea bien los campos con tildes."]},
+  {"v": "1.2.0", "items": ["Comando <code>nuevo</code>: carpeta + genmake en un paso.", "Autocompletado con Tab y colores en <code>run</code> y <code>estilo</code>.", "Pruebas automáticas, releases y plantillas de issues."]},
+  {"v": "1.1.0", "items": ["Perfil completo: universidad, centro, titulación, asignatura y curso.", "<code>ib-config</code> e <code>ib-update</code>.", "Mensajes y documentación en español e inglés."]},
+  {"v": "1.0.0", "items": ["Primera versión: <code>genmake</code>, <code>run</code> y <code>estilo</code>."]}
+ ],
+ "en": [
+  {"v": "1.3.0", "items": ["New website at <code>tools.broslunas.com</code>.", "<code>run</code> and <code>estilo</code> speak English too.", "<code>ib-config --show</code> aligns accented fields properly."]},
+  {"v": "1.2.0", "items": ["<code>nuevo</code> command: folder + genmake in one step.", "Tab completion and colors in <code>run</code> and <code>estilo</code>.", "Automated tests, releases and issue templates."]},
+  {"v": "1.1.0", "items": ["Full profile: university, school, degree, subject and year.", "<code>ib-config</code> and <code>ib-update</code>.", "Messages and docs in Spanish and English."]},
+  {"v": "1.0.0", "items": ["First version: <code>genmake</code>, <code>run</code> and <code>estilo</code>."]}
+ ]
+}

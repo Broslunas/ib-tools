@@ -26,3 +26,5 @@ ib-update
 Descarga la última versión del repositorio y reinstala los comandos, conservando tu perfil. Necesita `curl`.
 
 `genmake` comprueba, como mucho una vez por semana, si hay una versión nueva y te lo recuerda con una línea al terminar. Si no hay internet, no dice nada.
+
+`ib-update --version` muestra la versión instalada.

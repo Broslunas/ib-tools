@@ -39,6 +39,10 @@ Para no darte ruido innecesario, `estilo` desactiva tres comprobaciones de cppli
 
 `clang-format` (para `-f`) y `cpplint` (para la revisión de estilo). El [instalador](instalacion.md) te ofrece instalarlos. Sin `cpplint`, `estilo` te avisa y sigue con la revisión del compilador.
 
+## Colores
+
+Los avisos salen en amarillo y los errores en rojo. Se quitan con `estilo --sin-color` o con la variable `NO_COLOR=1`.
+
 ## Código de salida
 
 `estilo` termina con `0` si no hay avisos y con `1` si encontró alguno.

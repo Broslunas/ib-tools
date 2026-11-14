@@ -3,6 +3,7 @@
 # ib-update: updates ib-tools to the latest version.
 #
 #   ib-update            descarga e instala la última versión
+#   ib-update --version  muestra la versión instalada
 #   ib-update --aviso    (interno) avisa si hay versión nueva, como mucho 1 vez/semana
 
 set -euo pipefail
@@ -18,6 +19,10 @@ tr_() { if [[ "$L" == es ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi; }
 local_v="$estado/version"
 version_local() { cat "$local_v" 2>/dev/null || echo 0; }
 version_remota() { curl -fsSL --max-time 3 "$REPO_RAW/VERSION" 2>/dev/null | tr -d '[:space:]'; }
+
+if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
+  version_local; exit 0
+fi
 
 if [[ "${1:-}" == "--aviso" ]]; then
   command -v curl >/dev/null || exit 0

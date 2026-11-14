@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # run: recompila desde cero el programa del Makefile y lo ejecuta.
 # Uso: run [argumentos para el programa...]
+#   Colores: se desactivan con NO_COLOR=1
 #   Lee PROGRAMA del Makefile del directorio actual.
 
 set -uo pipefail
+
+# Colores: solo en terminal y si no está definida NO_COLOR (https://no-color.org)
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_CYN=$'\e[36m'; C_DIM=$'\e[2m'; C_B=$'\e[1m'; C_0=$'\e[0m'
+else
+  C_RED=""; C_GRN=""; C_YEL=""; C_CYN=""; C_DIM=""; C_B=""; C_0=""
+fi
 
 if [[ ! -f Makefile ]]; then
   echo "Error: no hay Makefile en este directorio (créalo con genmake <nombre>)." >&2
@@ -24,16 +32,17 @@ if command -v estilo >/dev/null; then
   estilo -q || true
 fi
 
-echo "==> Compilando $programa"
+echo "${C_CYN}${C_B}==> Compilando $programa${C_0}"
 if ! make; then
-  echo "==> Error de compilación, no se ejecuta." >&2
+  echo "${C_RED}${C_B}==> Error de compilación, no se ejecuta.${C_0}" >&2
   exit 1
 fi
 
-echo "==> Ejecutando ./$programa $*"
-echo "----------------------------------------"
+echo "${C_CYN}${C_B}==> Ejecutando ./$programa $*${C_0}"
+echo "${C_DIM}----------------------------------------${C_0}"
 ./"$programa" "$@"
 codigo=$?
-echo "----------------------------------------"
-echo "==> Terminó con código $codigo"
+echo "${C_DIM}----------------------------------------${C_0}"
+if [[ $codigo -eq 0 ]]; then col="$C_GRN"; else col="$C_RED"; fi
+echo "${col}${C_B}==> Terminó con código $codigo${C_0}"
 exit "$codigo"

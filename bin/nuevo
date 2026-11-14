@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# nuevo: crea la carpeta de un ejercicio y lanza genmake dentro.
+# new: creates an exercise folder and runs genmake inside.
+#
+# Uso / Usage: nuevo <nombre> [-y]
+#   nuevo cuadrado        crea ./cuadrado y te hace las preguntas de genmake
+#   nuevo cuadrado -y     lo mismo, aceptando todos los valores por defecto
+
+set -euo pipefail
+
+config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
+# shellcheck disable=SC1090
+[[ -f "$config" ]] && source "$config"
+case "${IB_LANG:-${LANG:-}}" in es*|ES*) L=es ;; *) L=en ;; esac
+tr_() { if [[ "$L" == es ]]; then printf '%s\n' "$1"; else printf '%s\n' "$2"; fi; }
+
+nombre=""; extra=()
+for a in "$@"; do
+  case "$a" in
+    -y) extra+=(-y) ;;
+    -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*) tr_ "Opción desconocida: $a" "Unknown option: $a" >&2; exit 1 ;;
+    *) nombre="$a" ;;
+  esac
+done
+
+if [[ -z "$nombre" ]]; then
+  tr_ 'Uso: nuevo <nombre> [-y]' 'Usage: nuevo <name> [-y]' >&2
+  exit 1
+fi
+if [[ ! "$nombre" =~ ^[A-Za-z0-9_.-]+$ || "$nombre" == .* ]]; then
+  tr_ "Error: nombre no válido: '$nombre'" "Error: invalid name: '$nombre'" >&2
+  exit 1
+fi
+if [[ -e "$nombre" && ! -d "$nombre" ]]; then
+  tr_ "Error: '$nombre' ya existe y no es una carpeta." "Error: '$nombre' exists and is not a folder." >&2
+  exit 1
+fi
+
+mkdir -p "$nombre"
+cd "$nombre"
+genmake "$nombre" "${extra[@]+"${extra[@]}"}"
+
+echo
+tr_ "Ahora entra en la carpeta:  cd $nombre" "Now enter the folder:  cd $nombre"

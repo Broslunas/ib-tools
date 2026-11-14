@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ib-tools</title>
+<meta name="description" content="Comandos para las prácticas de C++: genmake, nuevo, run, estilo.">
+<style>
+:root{--bg:#f6f7fa;--fg:#1d2030;--mut:#5b6178;--card:#fff;--acc:#2f6fed;--line:#dfe2ec;--code:#1e1f29}
+@media (prefers-color-scheme:dark){:root{--bg:#14151c;--fg:#e8eaf3;--mut:#9aa0b4;--card:#1d1f2a;--acc:#7aa2ff;--line:#2d3040;--code:#0e0f14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:48px 16px 64px}
+h1{font-size:2.4rem;margin:0 0 .3rem}h2{margin-top:2.6rem}
+.lead{color:var(--mut);font-size:1.15rem;margin:0 0 1.2rem}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);color:#e4e6ef;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:.92rem}
+code{background:var(--card);border:1px solid var(--line);padding:1px 6px;border-radius:5px;font-size:.92em}
+pre code{background:none;border:0;padding:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card b{display:block;margin-bottom:4px}
+img{max-width:100%;border-radius:10px}
+a{color:var(--acc)}
+.btn{display:inline-block;background:var(--acc);color:#fff;padding:9px 16px;border-radius:9px;text-decoration:none;margin-right:8px}
+.btn.alt{background:none;border:1px solid var(--line);color:var(--fg)}
+footer{margin-top:3rem;color:var(--mut);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>ib-tools</h1>
+<p class="lead">Menos trabajo repetitivo en las prácticas de C++: crea el ejercicio, compila, ejecuta y revisa el estilo con un comando.</p>
+<p><a class="btn" href="https://github.com/Broslunas/ib-tools/blob/main/docs/instalacion.md">Instalar</a><a class="btn alt" href="https://github.com/Broslunas/ib-tools">GitHub</a> <a href="https://github.com/Broslunas/ib-tools/blob/main/docs/en/installation.md">English</a></p>
+
+<h2>Instalación</h2>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/Broslunas/ib-tools/main/install.sh | bash</code></pre>
+<p>O con <code>git clone https://github.com/Broslunas/ib-tools.git &amp;&amp; cd ib-tools &amp;&amp; ./install.sh</code>. Te pregunta tu perfil (nombre, universidad, asignatura…) para la cabecera de tus archivos.</p>
+
+<h2>Comandos</h2>
+<div class="grid">
+<div class="card"><b>nuevo</b>Crea la carpeta del ejercicio y lanza genmake dentro.</div>
+<div class="card"><b>genmake</b>Makefile, programa principal y funciones, preguntando paso a paso.</div>
+<div class="card"><b>run</b>Recompila desde cero y ejecuta. Si no compila, no ejecuta.</div>
+<div class="card"><b>estilo</b>Guía de Google (cpplint) y avisos del compilador. <code>-f</code> corrige el formato.</div>
+<div class="card"><b>ib-config</b>Tu perfil: nombre, universidad, asignatura, idioma.</div>
+<div class="card"><b>ib-update</b>Actualiza a la última versión.</div>
+</div>
+
+<h2>Flujo de trabajo</h2>
+<img src="img/flujo.svg" alt="Flujo: nuevo, vim, run, estilo, entregar">
+
+<h2>Así se ve</h2>
+<p><img src="img/02-genmake.png" alt="genmake preguntando paso a paso"></p>
+<p><img src="img/04-run.png" alt="run con y sin argumentos"></p>
+
+<h2>Documentación</h2>
+<p><a href="https://github.com/Broslunas/ib-tools/blob/main/docs/instalacion.md">Instalación</a> · <a href="https://github.com/Broslunas/ib-tools/blob/main/docs/genmake.md">genmake</a> · <a href="https://github.com/Broslunas/ib-tools/blob/main/docs/run.md">run</a> · <a href="https://github.com/Broslunas/ib-tools/blob/main/docs/estilo.md">estilo</a> · <a href="https://github.com/Broslunas/ib-tools/blob/main/docs/perfil.md">perfil y actualizaciones</a> · <a href="https://github.com/Broslunas/ib-tools/blob/main/docs/problemas.md">problemas frecuentes</a></p>
+
+<footer>Proyecto de estudiantes, no oficial. Hecho por <a href="https://github.com/Broslunas">Broslunas</a> · Licencia MIT.</footer>
+</main>
+</body>
+</html>

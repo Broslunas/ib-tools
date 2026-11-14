@@ -31,5 +31,6 @@ En la captura, el primer `run` no pasa el argumento que el programa espera, y `C
 
 ## Cosas a tener en cuenta
 
+- Los mensajes salen en colores (verde si termina bien, rojo si falla). Para quitarlos: `NO_COLOR=1 run`.
 - `make clean` borra también los archivos temporales de Vim (`.*.swp`) de esa carpeta. Si tienes un archivo abierto en Vim y ejecutas `run` desde otra terminal, se borrará su `.swp`; no pierdes tu código, pero Vim ya no tendrá la protección de ese archivo.
 - Si no hay `Makefile` en la carpeta, `run` te lo dice. Créalo con [`genmake`](genmake.md).

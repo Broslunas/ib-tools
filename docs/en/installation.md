@@ -25,13 +25,13 @@ Option B (no clone):
 curl -fsSL https://raw.githubusercontent.com/Broslunas/ib-tools/main/install.sh | bash
 ```
 
-Read [install.sh](../../install.sh) first if you like: it copies five scripts to `~/.local/bin` and adds that folder to your `PATH`.
+Read [install.sh](../../install.sh) first if you like: it copies six scripts to `~/.local/bin` and adds that folder to your `PATH`.
 
 ## Step 2. Answer the installer
 
 It will:
 
-1. Copy `genmake`, `run`, `estilo`, `ib-config` and `ib-update` to `~/.local/bin`.
+1. Copy `genmake`, `nuevo`, `run`, `estilo`, `ib-config` and `ib-update` to `~/.local/bin`, and enable Tab completion.
 2. Ask for your profile: language, name, email (required), university, school, degree, subject and academic year (proposed from today's date). Saved in `~/.config/ib-tools/config`.
 3. Add `~/.local/bin` to your `PATH` in `~/.bashrc` if needed.
 4. Offer to install `clang-format` and `cpplint` (needs sudo; the password isn't shown while typing).
@@ -43,8 +43,8 @@ Or run `source ~/.bashrc`.
 ## Step 4. Check
 
 ```bash
-which genmake run estilo ib-config ib-update
-mkdir ~/test && cd ~/test && genmake -y && ls
+which genmake nuevo run estilo ib-config ib-update
+nuevo test -y && ls test
 ```
 
 You should see a `Makefile` and `test_main.cc`.

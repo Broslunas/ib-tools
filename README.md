@@ -12,6 +12,7 @@ Comandos para ahorrarte trabajo repetitivo en las prácticas de programación en
 
 | Comando | Para qué sirve |
 | --- | --- |
+| `nuevo` | Crea la carpeta del ejercicio y lanza `genmake` dentro: `nuevo cuadrado`. |
 | `genmake` | Crea el `Makefile`, el programa principal y, si quieres, un archivo de funciones con su `.h`. Te va preguntando paso a paso. |
 | `run` | Recompila desde cero y ejecuta el programa. Si no compila, no lo ejecuta. |
 | `estilo` | Revisa el estilo de Google (cpplint) y los avisos del compilador. Con `-f` corrige el formato solo. |
@@ -39,8 +40,9 @@ El instalador te pide tu perfil (nombre, correo, universidad, centro, titulació
 ## Uso en 30 segundos
 
 ```bash
-mkdir cuadrado && cd cuadrado
-genmake              # contesta las preguntas (Enter = valor por defecto)
+nuevo cuadrado       # crea la carpeta y te hace las preguntas
+cd cuadrado
+#                    # las preguntas de genmake: Enter = valor por defecto)
 vim cuadrado_main.cc # escribes tu código
 run 7                # compila y ejecuta con el argumento 7
 estilo               # revisa el estilo antes de entregar
@@ -56,6 +58,14 @@ estilo               # revisa el estilo antes de entregar
 - [estilo: revisar y corregir el código](docs/estilo.md)
 - [ib-config e ib-update: perfil y actualizaciones](docs/perfil.md)
 - [Problemas frecuentes](docs/problemas.md)
+
+## Extras
+
+- **Tab** completa los comandos y sus opciones.
+- **Colores** en `run` y `estilo`; se quitan con `NO_COLOR=1`.
+- **Web** de presentación en [docs/index.html](docs/index.html) (se publica con GitHub Pages, ver [CONTRIBUTING.md](CONTRIBUTING.md)).
+- **Problemas o ideas:** abre un [issue](https://github.com/Broslunas/ib-tools/issues/new/choose).
+- **Versiones:** [CHANGELOG.md](CHANGELOG.md) y [releases](https://github.com/Broslunas/ib-tools/releases).
 
 ## Idiomas
 

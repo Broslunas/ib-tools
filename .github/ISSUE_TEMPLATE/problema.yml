@@ -1,0 +1,33 @@
+name: Algo no funciona / Something is broken
+description: Cuéntanos qué ha pasado / Tell us what happened
+labels: [bug]
+body:
+  - type: textarea
+    id: comando
+    attributes:
+      label: Comando que ejecutaste / Command you ran
+      placeholder: genmake cuadrado
+    validations:
+      required: true
+  - type: textarea
+    id: salida
+    attributes:
+      label: Mensaje completo / Full output
+      description: Copia y pega todo lo que salió en la terminal.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué esperabas que pasara / What you expected
+  - type: input
+    id: version
+    attributes:
+      label: Versión (ib-update --version)
+      placeholder: "1.2.0"
+  - type: input
+    id: sistema
+    attributes:
+      label: Sistema (cat /etc/os-release | head -2)
+      placeholder: Ubuntu 24.04

@@ -1,0 +1,14 @@
+name: Idea o mejora / Idea or improvement
+description: Propón algo nuevo / Suggest something new
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: ¿Qué te gustaría que hiciera? / What would you like it to do?
+    validations:
+      required: true
+  - type: textarea
+    id: motivo
+    attributes:
+      label: ¿Qué problema te resolvería? / What problem would it solve?

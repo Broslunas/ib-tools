@@ -7,6 +7,13 @@
 
 set -uo pipefail
 
+# Colores: solo en terminal y si no está definida NO_COLOR (https://no-color.org)
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_CYN=$'\e[36m'; C_DIM=$'\e[2m'; C_B=$'\e[1m'; C_0=$'\e[0m'
+else
+  C_RED=""; C_GRN=""; C_YEL=""; C_CYN=""; C_DIM=""; C_B=""; C_0=""
+fi
+
 corregir=0
 breve=0
 archivos=()
@@ -14,8 +21,9 @@ for a in "$@"; do
   case "$a" in
     -f) corregir=1 ;;
     -q) breve=1 ;;
+    --sin-color) C_RED=""; C_GRN=""; C_YEL=""; C_CYN=""; C_DIM=""; C_B=""; C_0="" ;;
     -h|--help)
-      echo "Uso: estilo [-f] [-q] [archivos...]   (-f corrige el formato con clang-format)"
+      echo "Uso: estilo [-f] [-q] [--sin-color] [archivos...]   (-f corrige el formato con clang-format)"
       exit 0 ;;
     *) archivos+=("$a") ;;
   esac
@@ -76,14 +84,14 @@ else
   if [[ -n "$avisos" ]]; then
     hay_avisos=1
     n="$(printf '%s\n' "$avisos" | wc -l)"
-    echo "==> $n aviso(s) de estilo:"
+    echo "${C_YEL}${C_B}==> $n aviso(s) de estilo:${C_0}"
     while IFS= read -r linea; do
       echo "  $linea"
       if [[ "$linea" =~ ^([^:]+):([0-9]+): ]]; then
         f="${BASH_REMATCH[1]}"
         num="${BASH_REMATCH[2]}"
         if [[ "$num" -gt 0 && -f "$f" ]]; then
-          printf '      %4d | %s\n' "$num" "$(sed -n "${num}p" "$f")"
+          printf '%s      %4d | %s%s\n' "$C_DIM" "$num" "$(sed -n "${num}p" "$f")" "$C_0"
         fi
       fi
     done <<< "$avisos"
@@ -106,13 +114,13 @@ if [[ $breve -eq 0 ]] && command -v g++ >/dev/null; then
   done
   if [[ -n "$avisos_cc" ]]; then
     hay_avisos=1
-    echo "==> Avisos del compilador (-Wall -Wextra):"
-    printf '%s' "$avisos_cc" | sed 's/^/  /'
+    echo "${C_YEL}${C_B}==> Avisos del compilador (-Wall -Wextra):${C_0}"
+    printf '%s' "$avisos_cc" | sed "s/^/  /; s/warning:/${C_YEL}warning:${C_0}/; s/error:/${C_RED}error:${C_0}/"
   fi
 fi
 
 if [[ $hay_avisos -eq 0 ]]; then
-  [[ $breve -eq 1 ]] || echo "==> Estilo correcto en: ${archivos[*]}"
+  [[ $breve -eq 1 ]] || echo "${C_GRN}${C_B}==> Estilo correcto en: ${archivos[*]}${C_0}"
   exit 0
 fi
 exit 1

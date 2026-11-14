@@ -1,6 +1,6 @@
 # Instalación paso a paso
 
-Esta guía te lleva desde cero hasta tener `genmake`, `run`, `estilo`, `ib-config` e `ib-update` funcionando. Tarda unos cinco minutos.
+Esta guía te lleva desde cero hasta tener `genmake`, `nuevo`, `run`, `estilo`, `ib-config` e `ib-update` funcionando. Tarda unos cinco minutos.
 
 ## Qué necesitas
 
@@ -42,7 +42,7 @@ No hace falta clonar nada. Salta al paso 2 con este comando, que descarga y ejec
 curl -fsSL https://raw.githubusercontent.com/Broslunas/ib-tools/main/install.sh | bash
 ```
 
-> Es buena costumbre mirar un script antes de ejecutarlo. Puedes leerlo en [install.sh](../install.sh): copia cinco archivos a `~/.local/bin` y añade esa carpeta al `PATH`.
+> Es buena costumbre mirar un script antes de ejecutarlo. Puedes leerlo en [install.sh](../install.sh): copia seis archivos a `~/.local/bin` y añade esa carpeta al `PATH`.
 
 ## Paso 2. Ejecuta el instalador
 
@@ -56,7 +56,7 @@ Si has clonado el repositorio:
 
 El instalador hace esto, en orden:
 
-1. **Copia `genmake`, `run`, `estilo`, `ib-config` e `ib-update`** a `~/.local/bin`.
+1. **Copia `genmake`, `nuevo`, `run`, `estilo`, `ib-config` e `ib-update`** a `~/.local/bin`, y activa el autocompletado con Tab.
 2. **Te pregunta tu perfil** (con `ib-config`): idioma, nombre, correo, universidad, centro, titulación, asignatura y curso académico. Solo nombre y correo son obligatorios; el curso se propone según la fecha (por ejemplo `2026-2027`) y en lo demás Enter deja el campo vacío. Se guarda en `~/.config/ib-tools/config` y sale en la cabecera de los archivos que crea `genmake`.
 3. **Añade `~/.local/bin` al `PATH`** en tu `~/.bashrc`, si hacía falta.
 4. **Te ofrece instalar `clang-format` y `cpplint`**, que usa el comando `estilo`. Responde `s` y escribe la contraseña de sudo cuando la pida (no se ve mientras la escribes, es normal). Si respondes `n`, `genmake` y `run` funcionan igual y `estilo` te avisará de qué le falta.
@@ -72,18 +72,17 @@ source ~/.bashrc
 ## Paso 4. Comprueba que funciona
 
 ```bash
-which genmake run estilo ib-config ib-update
+which genmake nuevo run estilo ib-config ib-update
 ```
 
-Debe mostrar cinco rutas dentro de `~/.local/bin`. Haz ahora una prueba completa:
+Debe mostrar seis rutas dentro de `~/.local/bin`. Haz ahora una prueba completa:
 
 ```bash
-mkdir ~/prueba && cd ~/prueba
-genmake -y
-ls
+nuevo prueba -y
+ls prueba
 ```
 
-Tiene que crear un `Makefile` y un archivo `prueba_main.cc`. Si es así, ya está todo listo. Puedes borrar la carpeta de prueba con `cd .. && rm -r prueba`.
+Tiene que crear un `Makefile` y un archivo `prueba_main.cc` dentro de la carpeta `prueba`. Si es así, ya está todo listo. Bórrala con `rm -r prueba`.
 
 Siguiente paso: [cómo se usa genmake](genmake.md).
 
@@ -114,7 +113,7 @@ Desde la carpeta del repositorio:
 ./install.sh --desinstalar
 ```
 
-Borra los cinco comandos de `~/.local/bin`. Tus datos siguen en `~/.config/ib-tools/config`; bórralos a mano si quieres (`rm -r ~/.config/ib-tools`).
+Borra los seis comandos de `~/.local/bin`. Tus datos siguen en `~/.config/ib-tools/config`; bórralos a mano si quieres (`rm -r ~/.config/ib-tools`).
 
 ## ¿Algo ha ido mal?
 

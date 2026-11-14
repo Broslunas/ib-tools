@@ -5,7 +5,7 @@
 La terminal todavía no conoce la carpeta donde están los comandos. Prueba, por orden:
 
 1. Abre una terminal nueva, o ejecuta `source ~/.bashrc`.
-2. Comprueba que están instalados: `ls ~/.local/bin`. Deben aparecer `genmake`, `run`, `estilo`, `ib-config` e `ib-update`. Si no, vuelve a ejecutar `./install.sh`.
+2. Comprueba que están instalados: `ls ~/.local/bin`. Deben aparecer `genmake`, `nuevo`, `run`, `estilo`, `ib-config` e `ib-update`. Si no, vuelve a ejecutar `./install.sh`.
 3. Comprueba el `PATH`: `echo $PATH`. Debe incluir `/home/tu-usuario/.local/bin`. Si no, añádelo con:
 
    ```bash
@@ -66,6 +66,10 @@ El compilador no encuentra la definición de una función. Revisa que:
 ## Quiero cambiar mi nombre o mi correo
 
 Ejecuta `ib-config`. Mira [ib-config e ib-update](perfil.md).
+
+## El Tab no completa los comandos
+
+Abre una terminal nueva. Comprueba que `~/.bashrc` tiene una línea que carga `~/.local/share/ib-tools/completion.bash`; si no, vuelve a ejecutar `./install.sh`.
 
 ## `ib-update` falla o no encuentra versión nueva
 

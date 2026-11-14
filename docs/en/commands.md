@@ -1,4 +1,11 @@
-# genmake, run and estilo
+# nuevo, genmake, run and estilo
+
+## nuevo: folder + genmake in one step
+
+```bash
+nuevo square       # creates ./square and runs genmake inside (then: cd square)
+nuevo square -y    # accept every default
+```
 
 ## genmake: create an exercise
 
@@ -37,6 +44,6 @@ estilo square.cc     # one file
 estilo -f            # fix formatting with clang-format, then check
 ```
 
-Runs cpplint (Google style) and the compiler with `-Wall -Wextra`. Each warning shows the file, line, reason and the offending source line. Exit code is `0` with no warnings, `1` otherwise. With `-f`, an existing `.clang-format` replaces the Google style. Copyright, include-path and header-guard-path checks are disabled as noise in labs.
+Runs cpplint (Google style) and the compiler with `-Wall -Wextra`. Each warning shows the file, line, reason and the offending source line. Colors: disable with `estilo --sin-color` or `NO_COLOR=1` (also affects `run`). Exit code is `0` with no warnings, `1` otherwise. With `-f`, an existing `.clang-format` replaces the Google style. Copyright, include-path and header-guard-path checks are disabled as noise in labs.
 
 More screenshots: [Spanish docs](../genmake.md).

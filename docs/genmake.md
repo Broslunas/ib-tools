@@ -4,7 +4,14 @@
 
 ## Cómo se usa
 
-Crea una carpeta para el ejercicio, entra en ella y ejecuta `genmake`:
+Lo más cómodo es `nuevo`, que crea la carpeta y lanza `genmake` dentro (después entra con `cd cuadrado`):
+
+```bash
+nuevo cuadrado
+cd cuadrado
+```
+
+Si prefieres hacerlo a mano, crea la carpeta, entra en ella y ejecuta `genmake`:
 
 ```bash
 mkdir cuadrado

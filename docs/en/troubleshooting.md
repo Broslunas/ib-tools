@@ -22,6 +22,8 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 
 **`undefined reference to ...`** — the function is declared but not defined in a `.cc` in that folder, or its signature differs from the prototype.
 
+**Tab does nothing** — open a new terminal; check `~/.bashrc` has a line sourcing `~/.local/share/ib-tools/completion.bash`.
+
 **`ib-update` fails** — needs `curl` and internet; with a clone use `git pull && ./install.sh --actualizar`.
 
 Still stuck? Open an [issue](https://github.com/Broslunas/ib-tools/issues) with the command and the full message.

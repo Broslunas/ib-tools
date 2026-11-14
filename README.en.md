@@ -12,6 +12,7 @@ Small commands that save you repetitive work in **C++** programming labs at any 
 
 | Command | What it does |
 | --- | --- |
+| `nuevo` | Creates the exercise folder and runs `genmake` inside: `nuevo square`. |
 | `genmake` | Creates the `Makefile`, the main program and, optionally, a functions file with its `.h`. Asks step by step. |
 | `run` | Rebuilds from scratch and runs the program. If it doesn't compile, it doesn't run. |
 | `estilo` | Checks Google style (cpplint) and compiler warnings. `-f` fixes formatting for you. |
@@ -41,8 +42,8 @@ The installer asks for your profile (name, email, university, school, degree, su
 ## 30-second tour
 
 ```bash
-mkdir square && cd square
-genmake              # answer the questions (Enter = default)
+nuevo square         # creates the folder and asks the genmake questions
+cd square            # (Enter = default for each question)
 vim square_main.cc   # write your code
 run 7                # build and run with argument 7
 estilo               # check style before handing in
@@ -56,6 +57,14 @@ estilo               # check style before handing in
 - [Troubleshooting](docs/en/troubleshooting.md)
 
 Screenshots live in the Spanish docs ([docs/](docs/instalacion.md)).
+
+## Extras
+
+- **Tab** completes commands and options.
+- **Colors** in `run` and `estilo`; disable with `NO_COLOR=1`.
+- **Website** in [docs/index.html](docs/index.html) (published via GitHub Pages, see [CONTRIBUTING.md](CONTRIBUTING.md)).
+- **Problems or ideas:** open an [issue](https://github.com/Broslunas/ib-tools/issues/new/choose).
+- **Versions:** [CHANGELOG.md](CHANGELOG.md) and [releases](https://github.com/Broslunas/ib-tools/releases).
 
 ## Author and license
 

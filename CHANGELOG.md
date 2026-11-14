@@ -1,0 +1,17 @@
+# Cambios / Changelog
+
+## 1.2.0
+- Nuevo comando `nuevo <nombre>`: crea la carpeta del ejercicio y lanza `genmake` dentro.
+- Autocompletado con Tab para todos los comandos.
+- Colores en `run` y `estilo` (se desactivan con `NO_COLOR=1`; `estilo --sin-color`).
+- Pruebas automáticas (`tests/run-tests.sh`) y GitHub Actions.
+- Plantillas de issues, página web (`docs/index.html`) y releases por etiqueta.
+
+## 1.1.0
+- Perfil completo (universidad, centro, titulación, asignatura, curso, idioma) en el instalador.
+- Cabecera de los archivos construida con tu perfil; sirve para cualquier universidad.
+- Nuevos comandos `ib-config` e `ib-update`.
+- Mensajes y documentación en español e inglés.
+
+## 1.0.0
+- Primera versión: `genmake`, `run` y `estilo`.

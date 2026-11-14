@@ -13,7 +13,7 @@
 set -euo pipefail
 
 REPO_RAW="https://raw.githubusercontent.com/Broslunas/ib-tools/main"
-COMANDOS=(genmake run estilo ib-config ib-update)
+COMANDOS=(genmake nuevo run estilo ib-config ib-update)
 
 bin="$HOME/.local/bin"
 config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
@@ -30,6 +30,7 @@ if [[ "${1:-}" == "--desinstalar" ]]; then
   for c in "${COMANDOS[@]}"; do
     rm -f "$bin/$c"
   done
+  rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/ib-tools"
   echo "Comandos borrados de $bin."
   echo "Tus datos siguen en $config (bórralo a mano si quieres)."
   exit 0
@@ -76,6 +77,18 @@ for c in "${COMANDOS[@]}"; do
   chmod +x "$bin/$c"
 done
 echo "Instalados en $bin: ${COMANDOS[*]}"
+
+# Autocompletado con Tab
+share="${XDG_DATA_HOME:-$HOME/.local/share}/ib-tools"
+mkdir -p "$share"
+if [[ -f "$origen/../completion/ib-tools.bash" ]]; then
+  cp "$origen/../completion/ib-tools.bash" "$share/completion.bash"
+else
+  curl -fsSL "$REPO_RAW/completion/ib-tools.bash" -o "$share/completion.bash" 2>/dev/null || true
+fi
+if [[ -f "$share/completion.bash" ]] && ! grep -qs 'ib-tools/completion.bash' "$HOME/.bashrc"; then
+  printf '\n[ -f "%s/completion.bash" ] && . "%s/completion.bash"\n' "$share" "$share" >> "$HOME/.bashrc"
+fi
 
 # Versión instalada (para ib-update)
 mkdir -p "$(dirname "$config")"
@@ -139,6 +152,7 @@ fi
 echo
 echo "Listo. Comandos:"
 echo "  genmake [nombre]   crea Makefile y archivos del ejercicio, preguntando paso a paso"
+echo "  nuevo <nombre>     crea la carpeta del ejercicio y lanza genmake dentro"
 echo "  run [args]         recompila y ejecuta el programa del Makefile"
 echo "  estilo [-f]        revisa (y con -f corrige) el estilo del código"
 echo "  ib-config          cambia tu perfil (nombre, universidad, asignatura...)"

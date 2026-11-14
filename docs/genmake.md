@@ -44,6 +44,8 @@ Son dos funciones que sirven de plantilla para programas que reciben argumentos:
 
 El `main` generado ya las llama al principio:
 
+La cabecera sale de tu perfil, y el `main` ya llama a las funciones por defecto:
+
 ![Archivos generados](img/03-archivos.png)
 
 ## Qué archivos crea

@@ -1,0 +1,429 @@
+#!/usr/bin/env bash
+# genmake: genera el Makefile y los archivos de un ejercicio de C++,
+# preguntando paso a paso.
+#
+# Uso: genmake [nombre] [-y]
+#   nombre  nombre del ejercicio (si no lo das, lo pregunta)
+#   -y      acepta todos los valores por defecto sin preguntar
+#
+# Archivos que crea (para el ejercicio "factorial"):
+#   Makefile            se reescribe siempre
+#   factorial_main.cc   programa principal (main)
+#   factorial.cc/.h     funciones (opcional), con las funciones por defecto
+#                       PrintProgramPurpose y CheckCorrectParameters (opcional)
+# Los .cc y .h que ya existen no se tocan nunca.
+
+set -euo pipefail
+
+auto=0
+args=()
+for a in "$@"; do
+  case "$a" in
+    -y) auto=1 ;;
+    -h|--help)
+      echo "Uso: genmake [nombre] [-y]   (ej: genmake factorial)"
+      exit 0 ;;
+    -*) echo "Opción desconocida: $a (usa -h para ver el uso)" >&2; exit 1 ;;
+    *) args+=("$a") ;;
+  esac
+done
+
+if [[ ${#args[@]} -gt 1 ]]; then
+  echo "Uso: genmake [nombre] [-y]   (ej: genmake factorial)" >&2
+  exit 1
+fi
+
+skeleton="$HOME/.vim/skeleton.cc"
+fecha="$(date +'%b %d %Y')"
+
+valido() { [[ "$1" =~ ^[A-Za-z0-9_.-]+$ ]]; }
+
+# ---------- Datos del autor (se guardan en ~/.config/ib-tools/config) ----------
+config="${XDG_CONFIG_HOME:-$HOME/.config}/ib-tools/config"
+if [[ -f "$config" ]]; then
+  # shellcheck disable=SC1090
+  source "$config"
+fi
+if [[ -z "${IB_NOMBRE:-}" || -z "${IB_EMAIL:-}" ]]; then
+  if [[ -t 0 ]]; then
+    echo "Primera vez: configura tus datos para las cabeceras."
+    read -rp "Nombre y apellidos: " IB_NOMBRE
+    read -rp "Correo de la universidad: " IB_EMAIL
+    if [[ -z "$IB_NOMBRE" || -z "$IB_EMAIL" ]]; then
+      echo "Error: el nombre y el correo no pueden estar vacíos." >&2
+      exit 1
+    fi
+    mkdir -p "$(dirname "$config")"
+    printf 'IB_NOMBRE=%q\nIB_EMAIL=%q\n' "$IB_NOMBRE" "$IB_EMAIL" > "$config"
+  else
+    echo "Error: faltan tus datos (nombre y correo). Ejecuta genmake en una terminal." >&2
+    exit 1
+  fi
+fi
+autor="$IB_NOMBRE $IB_EMAIL"
+
+# ---------- Utilidades para preguntar ----------
+# leer "texto" variable "defecto"  (Enter = defecto)
+leer() {
+  local texto="$1" var="$2" def="${3:-}" resp=""
+  if [[ $auto -eq 1 ]]; then
+    printf -v "$var" '%s' "$def"
+    return 0
+  fi
+  if [[ -n "$def" ]]; then
+    read -rp "$texto [$def]: " resp || resp=""
+  else
+    read -rp "$texto: " resp || resp=""
+  fi
+  printf -v "$var" '%s' "${resp:-$def}"
+}
+
+# leer_nombre "texto" variable "defecto"  (solo letras, números, _ . -)
+leer_nombre() {
+  local intentos=0 valor=""
+  while true; do
+    leer "$1" valor "${3:-}"
+    valor="${valor%.cc}"
+    valor="${valor%.h}"
+    if valido "$valor"; then
+      printf -v "$2" '%s' "$valor"
+      return 0
+    fi
+    intentos=$((intentos + 1))
+    echo "  Nombre no válido (solo letras, números, _ . -)." >&2
+    if [[ $auto -eq 1 || $intentos -ge 3 ]]; then
+      echo "Error: no se pudo obtener un nombre válido." >&2
+      exit 1
+    fi
+  done
+}
+
+# leer_numero "texto" variable "defecto" (entero de 0 a 20)
+leer_numero() {
+  local intentos=0 valor=""
+  while true; do
+    leer "$1" valor "${3:-}"
+    if [[ "$valor" =~ ^[0-9]+$ && "$valor" -le 20 ]]; then
+      printf -v "$2" '%s' "$valor"
+      return 0
+    fi
+    intentos=$((intentos + 1))
+    echo "  Escribe un número entero entre 0 y 20." >&2
+    if [[ $auto -eq 1 || $intentos -ge 3 ]]; then
+      echo "Error: número no válido." >&2
+      exit 1
+    fi
+  done
+}
+
+# si_no "texto" defecto(s|n): devuelve 0 si la respuesta es sí
+si_no() {
+  local texto="$1" def="${2:-n}" resp="" marca
+  if [[ "$def" == "s" ]]; then marca="S/n"; else marca="s/N"; fi
+  if [[ $auto -eq 1 ]]; then
+    [[ "$def" == "s" ]]
+    return
+  fi
+  read -rp "$texto [$marca] " resp || resp=""
+  resp="${resp:-$def}"
+  [[ "$resp" =~ ^[sSyY]$ ]]
+}
+
+# ---------- Preguntas ----------
+if [[ -n "${args[0]:-}" ]]; then
+  nombre="${args[0]%.cc}"
+  nombre="${nombre%_main}"
+  if ! valido "$nombre"; then
+    echo "Error: nombre no válido: '$nombre'" >&2
+    exit 1
+  fi
+else
+  sugerido="$(basename "$PWD")"
+  valido "$sugerido" || sugerido=""
+  leer_nombre "Nombre del ejercicio (será también el del ejecutable)" nombre "$sugerido"
+fi
+
+leer_nombre "Nombre del archivo del programa principal (con el main)" principal "${nombre}_main"
+
+usa_funciones=0
+defecto=0
+funciones=""
+n_args=1
+arg_nombres=()
+descripcion=""
+
+if si_no "¿Crear un archivo de funciones?" n; then
+  usa_funciones=1
+  leer_nombre "Nombre del archivo de funciones (.cc y .h)" funciones "$nombre"
+  if [[ "$funciones" == "$principal" ]]; then
+    echo "Error: el archivo de funciones no puede llamarse igual que el principal." >&2
+    exit 1
+  fi
+
+  if si_no "¿Añadir las funciones por defecto (PrintProgramPurpose y CheckCorrectParameters)?" n; then
+    defecto=1
+    leer_numero "¿Cuántos argumentos espera el programa (sin contar su nombre)?" n_args "1"
+    for ((i = 1; i <= n_args; i++)); do
+      if [[ "$n_args" -eq 1 ]]; then def_arg="argumento"; else def_arg="argumento$i"; fi
+      leer_nombre "Nombre del argumento $i" nom_arg "$def_arg"
+      arg_nombres+=("$nom_arg")
+    done
+    leer "¿Qué hace el programa? (descripción corta)" descripcion ""
+  fi
+fi
+
+# ---------- Valores derivados ----------
+uso=""
+for a in "${arg_nombres[@]+"${arg_nombres[@]}"}"; do
+  uso+=" <$a>"
+done
+
+descripcion="${descripcion%.}"
+if [[ -z "$descripcion" ]]; then
+  descripcion="<describe aquí qué hace>"
+fi
+# Escapar \ y " para meterlo dentro de un literal de C++
+descripcion_cc="${descripcion//\\/\\\\}"
+descripcion_cc="${descripcion_cc//\"/\\\"}"
+
+# ---------- Resumen y confirmación ----------
+estado() { if [[ -e "$1" ]]; then echo "ya existe, no se toca"; else echo "nuevo"; fi; }
+
+if [[ $auto -eq 0 ]]; then
+  echo
+  echo "Resumen:"
+  printf '  %-26s %s\n' "Ejecutable" "$nombre"
+  if [[ -e Makefile ]]; then
+    printf '  %-26s %s\n' "Makefile" "se reescribe"
+  else
+    printf '  %-26s %s\n' "Makefile" "nuevo"
+  fi
+  printf '  %-26s %s\n' "$principal.cc" "programa principal ($(estado "$principal.cc"))"
+  if [[ $usa_funciones -eq 1 ]]; then
+    printf '  %-26s %s\n' "$funciones.cc" "funciones ($(estado "$funciones.cc"))"
+    printf '  %-26s %s\n' "$funciones.h" "prototipos ($(estado "$funciones.h"))"
+  fi
+  if [[ $defecto -eq 1 ]]; then
+    printf '  %-26s %s\n' "Funciones por defecto" "${n_args} argumento(s):${uso:- ninguno}"
+    printf '  %-26s %s\n' "Objetivo" "$descripcion"
+  fi
+  echo
+  if ! si_no "¿Crear estos archivos?" s; then
+    echo "Cancelado, no se ha creado nada."
+    exit 0
+  fi
+fi
+
+# ---------- Texto de las funciones por defecto ----------
+# Prototipos (para el .h)
+texto_prototipos() {
+  cat <<'EOF'
+// Imprime una breve descripción de lo que hace el programa.
+void PrintProgramPurpose();
+
+// Comprueba que se han pasado los argumentos esperados.
+// Si no es así, muestra el modo de uso y termina el programa.
+void CheckCorrectParameters(const int argc, char* argv[],
+                            const int kCorrectNumber);
+EOF
+}
+
+# Definiciones (para <funciones>.cc)
+texto_definiciones() {
+  cat <<EOF
+// Imprime una breve descripción de lo que hace el programa.
+void PrintProgramPurpose() {
+  std::cout << "Este programa $descripcion_cc.\\n";
+}
+
+// Comprueba que se han pasado los argumentos esperados.
+// Si no es así, muestra el modo de uso y termina el programa.
+void CheckCorrectParameters(const int argc, char* argv[],
+                            const int kCorrectNumber) {
+  if (argc - 1 != kCorrectNumber) {
+    std::cerr << "Error: número de argumentos incorrecto.\\n"
+              << "Modo de uso: " << argv[0] << "$uso\\n";
+    exit(EXIT_FAILURE);
+  }
+}
+EOF
+}
+
+# Cabecera común (igual que skeleton.cc)
+cabecera() {
+  cat <<EOF
+/**
+ * Universidad de La Laguna
+ * Escuela Superior de Ingeniería y Tecnología
+ * Grado en Ingeniería Informática
+ * Informática Básica 2026-2027
+ *
+ * @file $1
+ * @author $autor
+ * @date $fecha
+ * @brief
+ * @bug There are no known bugs
+ * @see
+ */
+EOF
+}
+
+# ---------- Creación de .h / .cc ----------
+crear_header() {
+  local base="$1" guard
+  guard="$(echo "${base}_H" | tr '[:lower:].-' '[:upper:]__')"
+  if [[ -e "$base.h" ]]; then
+    echo "$base.h ya existe, no se toca."
+    return 0
+  fi
+  {
+    cabecera "$base.h"
+    printf '\n#ifndef %s\n#define %s\n\n' "$guard" "$guard"
+    if [[ $defecto -eq 1 ]]; then
+      texto_prototipos
+      printf '\n'
+    else
+      printf '\n\n'
+    fi
+    printf '#endif  // %s\n' "$guard"
+  } > "$base.h"
+  echo "$base.h creado."
+}
+
+crear_fuente() {
+  local base="$1"
+  if [[ -e "$base.cc" ]]; then
+    echo "$base.cc ya existe, no se toca."
+    return 0
+  fi
+  {
+    cabecera "$base.cc"
+    printf '\n#include "%s.h"\n\n' "$base"
+    if [[ $defecto -eq 1 ]]; then
+      printf '#include <cstdlib>\n#include <iostream>\n\n'
+      texto_definiciones
+    else
+      printf '#include <iostream>\n\n'
+    fi
+  } > "$base.cc"
+  echo "$base.cc creado."
+}
+
+# ---------- Makefile ----------
+cat > Makefile <<'EOF'
+# Universidad de La Laguna
+# Escuela Superior de Ingeniería y Tecnología
+# Grado en Ingeniería Informática
+# Informática Básica
+#
+# @author __AUTOR__
+
+# =========================================================
+# CONFIGURACIÓN DEL PROYECTO
+# PROGRAMA: nombre del ejecutable
+# MAIN: nombre (sin .cc) del archivo que contiene el main()
+# =========================================================
+
+# Solo cambias estas variables para cada ejercicio/programa
+PROGRAMA := __NOMBRE__
+MAIN     := __MAIN__
+
+# Configuración del ejecutable y archivos fuente
+TARGET   := $(PROGRAMA)
+MAIN_SRC := $(MAIN).cc
+FUNC_SRC := $(filter-out $(MAIN_SRC),$(wildcard *.cc))
+# Compilador y banderas
+CXX      := g++
+CXXFLAGS := -Wall -Wextra -std=c++17
+
+# Generación automática de archivos objeto (.o)
+OBJS     := $(MAIN_SRC:.cc=.o) $(FUNC_SRC:.cc=.o)
+
+# Regla principal
+all: $(TARGET)
+
+# Enlace del ejecutable
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Compilación de .cc a .o
+%.o: %.cc $(wildcard *.h)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Limpieza de binarios, objetos y archivos de intercambio de Vim
+clean:
+	rm -f *.o $(TARGET) .*.swp
+
+.PHONY: all clean
+EOF
+sed -i -e "s/__NOMBRE__/$nombre/" -e "s/__MAIN__/$principal/" Makefile
+autor_esc="$(printf '%s' "$autor" | sed 's/[&|\\]/\\&/g')"
+sed -i "s|__AUTOR__|$autor_esc|" Makefile
+echo "Makefile creado para '$nombre'."
+
+# ---------- Programa principal ----------
+if [[ -e "$principal.cc" ]]; then
+  echo "$principal.cc ya existe, no se toca."
+  if [[ $defecto -eq 1 ]]; then
+    echo "Aviso: añade tú las llamadas a PrintProgramPurpose y CheckCorrectParameters en $principal.cc."
+  fi
+else
+  if [[ -f "$skeleton" ]]; then
+    cp "$skeleton" "$principal.cc"
+    sed -i -e "s/FILENAME/$principal.cc/" -e "s/DATE/$fecha/" "$principal.cc"
+  else
+    { cabecera "$principal.cc"
+      printf '\n#include <iostream>\n\nint main() {\n\n  return 0;\n}\n'
+    } > "$principal.cc"
+  fi
+
+  # Include de la cabecera de funciones
+  if [[ $usa_funciones -eq 1 ]]; then
+    if grep -q '^#include <iostream>' "$principal.cc"; then
+      modo="despues"
+    else
+      modo="antes"
+    fi
+    awk -v inc="$funciones.h" -v modo="$modo" '
+      !hecho && ((modo == "despues" && /^#include <iostream>/) ||
+                 (modo == "antes" && /^#include/)) {
+        if (modo == "despues") { print; print "" }
+        print "#include \"" inc "\""
+        if (modo == "antes") { print ""; print }
+        hecho = 1
+        next
+      }
+      { print }
+    ' "$principal.cc" > "$principal.cc.tmp" && mv "$principal.cc.tmp" "$principal.cc"
+  fi
+
+  # Comprobación de argumentos: sustituye "int main() {"
+  if [[ $defecto -eq 1 ]]; then
+    bloque="$(mktemp)"
+    {
+      echo '// Número de argumentos esperados (sin contar el nombre del programa).'
+      echo "const int kCorrectNumber = $n_args;"
+      echo
+      echo 'int main(int argc, char* argv[]) {'
+      echo '  PrintProgramPurpose();'
+      echo '  CheckCorrectParameters(argc, argv, kCorrectNumber);'
+    } > "$bloque"
+
+    awk -v f="$bloque" '
+      !hecho && /^int main\(\) \{/ {
+        while ((getline linea < f) > 0) print linea
+        hecho = 1
+        next
+      }
+      { print }
+    ' "$principal.cc" > "$principal.cc.tmp" && mv "$principal.cc.tmp" "$principal.cc"
+    rm -f "$bloque"
+  fi
+  echo "$principal.cc creado."
+fi
+
+# ---------- Archivo de funciones ----------
+if [[ $usa_funciones -eq 1 ]]; then
+  crear_header "$funciones"
+  crear_fuente "$funciones"
+fi

@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# estilo: revisa el estilo (guía de Google) y los avisos del compilador.
+# Uso: estilo [-f] [-q] [archivos...]
+#   sin archivos  revisa todos los .cc y .h de la carpeta actual
+#   -f            corrige antes el formato con clang-format (modifica los archivos)
+#   -q            modo breve (lo usa run): solo cpplint, sin compilar
+
+set -uo pipefail
+
+corregir=0
+breve=0
+archivos=()
+for a in "$@"; do
+  case "$a" in
+    -f) corregir=1 ;;
+    -q) breve=1 ;;
+    -h|--help)
+      echo "Uso: estilo [-f] [-q] [archivos...]   (-f corrige el formato con clang-format)"
+      exit 0 ;;
+    *) archivos+=("$a") ;;
+  esac
+done
+
+if [[ ${#archivos[@]} -eq 0 ]]; then
+  shopt -s nullglob
+  archivos=(*.cc *.h)
+  shopt -u nullglob
+fi
+
+if [[ ${#archivos[@]} -eq 0 ]]; then
+  [[ $breve -eq 1 ]] || echo "No hay archivos .cc ni .h en esta carpeta."
+  exit 0
+fi
+
+for f in "${archivos[@]}"; do
+  if [[ ! -f "$f" ]]; then
+    echo "Error: no existe '$f'." >&2
+    exit 1
+  fi
+done
+
+# Localizar cpplint (también si está instalado con pip --user o pipx)
+CPPLINT="$(command -v cpplint || true)"
+[[ -z "$CPPLINT" && -x "$HOME/.local/bin/cpplint" ]] && CPPLINT="$HOME/.local/bin/cpplint"
+
+# ---------- Corrección de formato ----------
+if [[ $corregir -eq 1 ]]; then
+  if ! command -v clang-format >/dev/null; then
+    echo "Error: clang-format no está instalado (sudo apt install clang-format)." >&2
+    exit 1
+  fi
+  # Si hay un .clang-format en la carpeta o en alguna superior, se usa; si no, Google.
+  estilo_cf="Google"
+  dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -f "$dir/.clang-format" ]]; then estilo_cf="file"; break; fi
+    dir="$(dirname "$dir")"
+  done
+  clang-format -i -style="$estilo_cf" "${archivos[@]}"
+  echo "==> Formato corregido con clang-format (estilo: $estilo_cf): ${archivos[*]}"
+fi
+
+hay_avisos=0
+
+# ---------- Revisión con cpplint ----------
+if [[ -z "$CPPLINT" ]]; then
+  echo "Aviso: cpplint no está instalado (pipx install cpplint); se omite esa revisión." >&2
+else
+  # Filtros: sin aviso de copyright, de directorio en los #include "x.h"
+  # ni de include guards basados en la ruta completa (no tienen sentido aquí)
+  filtros="-legal/copyright,-build/include_subdir,-build/header_guard"
+
+  salida="$("$CPPLINT" --quiet --filter="$filtros" "${archivos[@]}" 2>&1)" || true
+  avisos="$(printf '%s\n' "$salida" | grep -E ':[0-9]+: ' || true)"
+
+  if [[ -n "$avisos" ]]; then
+    hay_avisos=1
+    n="$(printf '%s\n' "$avisos" | wc -l)"
+    echo "==> $n aviso(s) de estilo:"
+    while IFS= read -r linea; do
+      echo "  $linea"
+      if [[ "$linea" =~ ^([^:]+):([0-9]+): ]]; then
+        f="${BASH_REMATCH[1]}"
+        num="${BASH_REMATCH[2]}"
+        if [[ "$num" -gt 0 && -f "$f" ]]; then
+          printf '      %4d | %s\n' "$num" "$(sed -n "${num}p" "$f")"
+        fi
+      fi
+    done <<< "$avisos"
+    if [[ $breve -eq 0 && $corregir -eq 0 ]]; then
+      echo "    (prueba 'estilo -f' para corregir el formato automáticamente)"
+    fi
+  fi
+fi
+
+# ---------- Avisos del compilador (-Wall -Wextra) ----------
+if [[ $breve -eq 0 ]] && command -v g++ >/dev/null; then
+  avisos_cc=""
+  for f in "${archivos[@]}"; do
+    if [[ "$f" == *.cc ]]; then
+      salida_cc="$(g++ -Wall -Wextra -std=c++17 -fsyntax-only "$f" 2>&1)" || true
+      if [[ -n "$salida_cc" ]]; then
+        avisos_cc+="$salida_cc"$'\n'
+      fi
+    fi
+  done
+  if [[ -n "$avisos_cc" ]]; then
+    hay_avisos=1
+    echo "==> Avisos del compilador (-Wall -Wextra):"
+    printf '%s' "$avisos_cc" | sed 's/^/  /'
+  fi
+fi
+
+if [[ $hay_avisos -eq 0 ]]; then
+  [[ $breve -eq 1 ]] || echo "==> Estilo correcto en: ${archivos[*]}"
+  exit 0
+fi
+exit 1

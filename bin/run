@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# run: recompila desde cero el programa del Makefile y lo ejecuta.
+# Uso: run [argumentos para el programa...]
+#   Lee PROGRAMA del Makefile del directorio actual.
+
+set -uo pipefail
+
+if [[ ! -f Makefile ]]; then
+  echo "Error: no hay Makefile en este directorio (créalo con genmake <nombre>)." >&2
+  exit 1
+fi
+
+programa="$(sed -n 's/^[[:space:]]*PROGRAMA[[:space:]]*:\?=[[:space:]]*\([^[:space:]#]*\).*/\1/p' Makefile | head -n1)"
+
+if [[ -z "$programa" ]]; then
+  echo "Error: no encuentro la variable PROGRAMA en el Makefile." >&2
+  exit 1
+fi
+
+make -s clean >/dev/null 2>&1
+
+# Revisión de estilo: solo avisa, no impide compilar
+if command -v estilo >/dev/null; then
+  estilo -q || true
+fi
+
+echo "==> Compilando $programa"
+if ! make; then
+  echo "==> Error de compilación, no se ejecuta." >&2
+  exit 1
+fi
+
+echo "==> Ejecutando ./$programa $*"
+echo "----------------------------------------"
+./"$programa" "$@"
+codigo=$?
+echo "----------------------------------------"
+echo "==> Terminó con código $codigo"
+exit "$codigo"

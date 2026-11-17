@@ -47,7 +47,7 @@ Los valores entre corchetes son los que se usan si pulsas **Enter** sin escribir
 Son dos funciones que sirven de plantilla para programas que reciben argumentos:
 
 - `PrintProgramPurpose()` imprime una frase sobre lo que hace el programa.
-- `CheckCorrectParameters(argc, argv, kCorrectNumber)` comprueba que se pasaron los argumentos esperados. Si no, muestra el modo de uso y termina el programa con error.
+- `CheckCorrectParameters(argc, argv, kCorrectNumber)` exige al menos ese número de argumentos (sin contar el nombre del programa). Se permiten argumentos adicionales. Si faltan, muestra el modo de uso y termina el programa con error.
 
 El `main` generado ya las llama al principio:
 

@@ -312,9 +312,9 @@ fi
 # ---------- Texto de las funciones por defecto ----------
 texto_constante() {
   if [[ "$L" == es ]]; then
-    echo '// Número de argumentos esperados (sin contar el nombre del programa).'
+    echo '// Número mínimo de argumentos (sin contar el nombre del programa).'
   else
-    echo '// Number of expected arguments (not counting the program name).'
+    echo '// Minimum number of arguments (not counting the program name).'
   fi
 }
 
@@ -325,7 +325,7 @@ texto_prototipos() {
 // Imprime una breve descripción de lo que hace el programa.
 void PrintProgramPurpose();
 
-// Comprueba que se han pasado los argumentos esperados.
+// Comprueba que se ha pasado el número mínimo de argumentos.
 // Si no es así, muestra el modo de uso y termina el programa.
 void CheckCorrectParameters(const int argc, char* argv[],
                             const int kCorrectNumber);
@@ -335,7 +335,7 @@ EOF
 // Prints a short description of what the program does.
 void PrintProgramPurpose();
 
-// Checks that the expected number of arguments was passed.
+// Checks that the minimum number of arguments was passed.
 // If not, shows the usage and ends the program.
 void CheckCorrectParameters(const int argc, char* argv[],
                             const int kCorrectNumber);
@@ -352,12 +352,13 @@ void PrintProgramPurpose() {
   std::cout << "Este programa $descripcion_cc.\\n";
 }
 
-// Comprueba que se han pasado los argumentos esperados.
+// Comprueba que se ha pasado el número mínimo de argumentos.
 // Si no es así, muestra el modo de uso y termina el programa.
 void CheckCorrectParameters(const int argc, char* argv[],
                             const int kCorrectNumber) {
-  if (argc - 1 != kCorrectNumber) {
-    std::cerr << "Error: número de argumentos incorrecto.\\n"
+  if (argc - 1 < kCorrectNumber) {
+    std::cerr << "Error: faltan argumentos (se esperaban al menos "
+              << kCorrectNumber << ").\\n"
               << "Modo de uso: " << argv[0] << "$uso\\n";
     exit(EXIT_FAILURE);
   }
@@ -370,12 +371,13 @@ void PrintProgramPurpose() {
   std::cout << "This program $descripcion_cc.\\n";
 }
 
-// Checks that the expected number of arguments was passed.
+// Checks that at least the minimum number of arguments was passed.
 // If not, shows the usage and ends the program.
 void CheckCorrectParameters(const int argc, char* argv[],
                             const int kCorrectNumber) {
-  if (argc - 1 != kCorrectNumber) {
-    std::cerr << "Error: wrong number of arguments.\\n"
+  if (argc - 1 < kCorrectNumber) {
+    std::cerr << "Error: too few arguments (expected at least "
+              << kCorrectNumber << ").\\n"
               << "Usage: " << argv[0] << "$uso\\n";
     exit(EXIT_FAILURE);
   }

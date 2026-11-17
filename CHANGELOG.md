@@ -1,5 +1,8 @@
 # Cambios / Changelog
 
+## 1.3.1
+- `genmake` permite argumentos adicionales y solo rechaza si faltan los mínimos indicados.
+
 ## 1.3.0
 - Web nueva: https://tools.broslunas.com (fuente en `site/`).
 - `run` y `estilo` también hablan inglés.

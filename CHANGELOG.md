@@ -1,5 +1,8 @@
 # Cambios / Changelog
 
+## 1.3.3
+- Se conserva el nombre `kCorrectNumber` en el código generado para mantener la compatibilidad con los proyectos y pruebas existentes.
+
 ## 1.3.2
 - `genmake` acepta condiciones sobre el número de argumentos (`3`, `>= 2`, `> 2; < 5`, etc.).
 

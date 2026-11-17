@@ -1,5 +1,6 @@
 {
  "es": [
+  {"v": "1.3.3", "items": ["Se conserva <code>kCorrectNumber</code> en el código generado para mantener la compatibilidad."]},
   {"v": "1.3.2", "items": ["<code>genmake</code> acepta condiciones del número de argumentos como <code>&gt;= 2; &lt; 5</code>."]},
   {"v": "1.3.1", "items": ["<code>genmake</code> acepta argumentos adicionales y comprueba que se alcance el mínimo indicado."]},
   {"v": "1.3.0", "items": ["Web nueva en <code>tools.broslunas.com</code>.", "<code>run</code> y <code>estilo</code> también hablan inglés.", "<code>ib-config --ver</code> alinea bien los campos con tildes."]},
@@ -8,6 +9,7 @@
   {"v": "1.0.0", "items": ["Primera versión: <code>genmake</code>, <code>run</code> y <code>estilo</code>."]}
  ],
  "en": [
+  {"v": "1.3.3", "items": ["Generated code keeps <code>kCorrectNumber</code> for compatibility."]},
   {"v": "1.3.2", "items": ["<code>genmake</code> accepts argument count conditions such as <code>&gt;= 2; &lt; 5</code>."]},
   {"v": "1.3.1", "items": ["<code>genmake</code> accepts extra arguments and checks that the stated minimum is met."]},
   {"v": "1.3.0", "items": ["New website at <code>tools.broslunas.com</code>.", "<code>run</code> and <code>estilo</code> speak English too.", "<code>ib-config --show</code> aligns accented fields properly."]},

@@ -374,7 +374,7 @@ void PrintProgramPurpose();
 // Comprueba que se ha pasado el número mínimo de argumentos.
 // Si no es así, muestra el modo de uso y termina el programa.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kMinimumNumber);
+                            const int kCorrectNumber);
 EOF
   else
     cat <<'EOF'
@@ -384,7 +384,7 @@ void PrintProgramPurpose();
 // Checks that the minimum number of arguments was passed.
 // If not, shows the usage and ends the program.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kMinimumNumber);
+                            const int kCorrectNumber);
 EOF
   fi
 }
@@ -401,8 +401,8 @@ void PrintProgramPurpose() {
 // Comprueba que se ha pasado el número mínimo de argumentos.
 // Si no es así, muestra el modo de uso y termina el programa.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kMinimumNumber) {
-  if ($condicion_cpp || argc - 1 < kMinimumNumber) {
+                            const int kCorrectNumber) {
+  if ($condicion_cpp || argc - 1 < kCorrectNumber) {
     std::cerr << "Error: número de argumentos no válido (condición: $condicion_texto).\\n"
               << "Modo de uso: " << argv[0] << "$uso\\n";
     exit(EXIT_FAILURE);
@@ -419,8 +419,8 @@ void PrintProgramPurpose() {
 // Checks that at least the minimum number of arguments was passed.
 // If not, shows the usage and ends the program.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kMinimumNumber) {
-  if ($condicion_cpp || argc - 1 < kMinimumNumber) {
+                            const int kCorrectNumber) {
+  if ($condicion_cpp || argc - 1 < kCorrectNumber) {
     std::cerr << "Error: invalid number of arguments (condition: $condicion_texto).\\n"
               << "Usage: " << argv[0] << "$uso\\n";
     exit(EXIT_FAILURE);
@@ -651,11 +651,11 @@ else
     bloque="$(mktemp)"
     {
       texto_constante
-      echo "const int kMinimumNumber = $n_args;"
+      echo "const int kCorrectNumber = $n_args;"
       echo
       echo 'int main(int argc, char* argv[]) {'
       echo '  PrintProgramPurpose();'
-      echo '  CheckCorrectParameters(argc, argv, kMinimumNumber);'
+      echo '  CheckCorrectParameters(argc, argv, kCorrectNumber);'
     } > "$bloque"
 
     awk -v f="$bloque" '

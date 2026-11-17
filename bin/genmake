@@ -33,8 +33,8 @@ ES=(
   [invalid_name]="Error: nombre no válido: '%s'\n"
   [invalid_again]='  Nombre no válido (solo letras, números, _ . -).\n'
   [name_fail]='Error: no se pudo obtener un nombre válido.\n'
-  [num_hint]='  Escribe un número entero entre 0 y 20.\n'
-  [num_fail]='Error: número no válido.\n'
+  [num_hint]='  Usa un número o condiciones como >= 2; < 5 (valores entre 0 y 20).\n'
+  [num_fail]='Error: condición no válida.\n'
   [same_name]='Error: el archivo de funciones no puede llamarse igual que el principal.\n'
   [yn_marks_n]='s/N'
   [yn_marks_s]='S/n'
@@ -43,7 +43,7 @@ ES=(
   [q_funcs]='¿Crear un archivo de funciones?'
   [q_funcs_name]='Nombre del archivo de funciones (.cc y .h)'
   [q_default]='¿Añadir las funciones por defecto (PrintProgramPurpose y CheckCorrectParameters)?'
-  [q_nargs]='¿Cuántos argumentos espera el programa (sin contar su nombre)?'
+  [q_nargs]='Condición para el número de argumentos (ej: 3, >= 2, > 2; < 5)'
   [q_argname]='Nombre del argumento %s'
   [q_desc]='¿Qué hace el programa? (descripción corta)'
   [q_confirm]='¿Crear estos archivos?'
@@ -74,8 +74,8 @@ EN=(
   [invalid_name]="Error: invalid name: '%s'\n"
   [invalid_again]='  Invalid name (letters, numbers, _ . - only).\n'
   [name_fail]='Error: could not get a valid name.\n'
-  [num_hint]='  Enter an integer between 0 and 20.\n'
-  [num_fail]='Error: invalid number.\n'
+  [num_hint]='  Use a number or conditions such as >= 2; < 5 (values from 0 to 20).\n'
+  [num_fail]='Error: invalid condition.\n'
   [same_name]='Error: the functions file cannot have the same name as the main file.\n'
   [yn_marks_n]='y/N'
   [yn_marks_s]='Y/n'
@@ -84,7 +84,7 @@ EN=(
   [q_funcs]='Create a functions file?'
   [q_funcs_name]='Name of the functions file (.cc and .h)'
   [q_default]='Add the default functions (PrintProgramPurpose and CheckCorrectParameters)?'
-  [q_nargs]='How many arguments does the program expect (not counting its name)?'
+  [q_nargs]='Condition for the number of arguments (e.g. 3, >= 2, > 2; < 5)'
   [q_argname]='Name of argument %s'
   [q_desc]='What does the program do? (short description)'
   [q_confirm]='Create these files?'
@@ -193,15 +193,61 @@ leer_nombre() {
   done
 }
 
-# leer_numero "texto" variable "defecto" (entero de 0 a 20)
-leer_numero() {
-  local intentos=0 valor=""
+# leer_condicion: número exacto o comparaciones unidas por punto y coma.
+# Calcula la condición C++ y el mínimo de argumentos obligatorios.
+leer_condicion() {
+  local intentos=0 entrada termino operador limite
+  local minimo maximo valor_min prueba
   while true; do
-    leer "$1" valor "${3:-}"
-    if [[ "$valor" =~ ^[0-9]+$ && "$valor" -le 20 ]]; then
-      printf -v "$2" '%s' "$valor"
+    leer "$1" entrada "1"
+    entrada="${entrada//[[:space:]]/}"
+    condicion_cpp=""
+    n_args=0
+    if [[ "$entrada" =~ ^[0-9]+$ ]] && (( 10#$entrada <= 20 )); then
+      entrada=$((10#$entrada))
+      condicion_cpp="(argc - 1 != $entrada)"
+      n_args="$entrada"
+      condicion_texto="$entrada"
       return 0
     fi
+
+    IFS=';' read -r -a terminos <<< "$entrada"
+    minimo=0
+    maximo=20
+    valido_condicion=1
+    condicion_cpp=""
+    for termino in "${terminos[@]}"; do
+      if [[ ! "$termino" =~ ^(>=|<=|==|>|<|=)([0-9]+)$ ]]; then
+        valido_condicion=0
+        break
+      fi
+      operador="${BASH_REMATCH[1]}"
+      limite="${BASH_REMATCH[2]}"
+      limite=$((10#$limite))
+      if (( limite > 20 )); then valido_condicion=0; break; fi
+      case "$operador" in
+        '>=') valor_min="$limite" ;;
+        '>') valor_min=$((limite + 1)) ;;
+        '=='|'=') valor_min="$limite"; maximo="$limite" ;;
+        *) valor_min=0 ;;
+      esac
+      if (( valor_min > minimo )); then minimo="$valor_min"; fi
+      case "$operador" in
+        '<') prueba=$((limite - 1)); (( prueba < maximo )) && maximo="$prueba" ;;
+        '<=') (( limite < maximo )) && maximo="$limite" ;;
+      esac
+      case "$operador" in
+        '=='|'=') prueba="(argc - 1 != $limite)" ;;
+        *) prueba="!(argc - 1 $operador $limite)" ;;
+      esac
+      condicion_cpp+="${condicion_cpp:+ || }$prueba"
+    done
+    if (( valido_condicion )) && [[ -n "$condicion_cpp" ]] && (( minimo <= maximo && minimo <= 20 )); then
+      n_args="$minimo"
+      condicion_texto="$entrada"
+      return 0
+    fi
+
     intentos=$((intentos + 1))
     t num_hint >&2
     if [[ $auto -eq 1 || $intentos -ge 3 ]]; then
@@ -257,7 +303,7 @@ if si_no "$(t q_funcs)" n; then
 
   if si_no "$(t q_default)" n; then
     defecto=1
-    leer_numero "$(t q_nargs)" n_args "1"
+    leer_condicion "$(t q_nargs)"
     for ((i = 1; i <= n_args; i++)); do
       if [[ "$n_args" -eq 1 ]]; then def_arg="$(t def_arg)"; else def_arg="$(t def_arg)$i"; fi
       leer_nombre "$(t q_argname "$i")" nom_arg "$def_arg"
@@ -328,7 +374,7 @@ void PrintProgramPurpose();
 // Comprueba que se ha pasado el número mínimo de argumentos.
 // Si no es así, muestra el modo de uso y termina el programa.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kCorrectNumber);
+                            const int kMinimumNumber);
 EOF
   else
     cat <<'EOF'
@@ -338,7 +384,7 @@ void PrintProgramPurpose();
 // Checks that the minimum number of arguments was passed.
 // If not, shows the usage and ends the program.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kCorrectNumber);
+                            const int kMinimumNumber);
 EOF
   fi
 }
@@ -355,10 +401,9 @@ void PrintProgramPurpose() {
 // Comprueba que se ha pasado el número mínimo de argumentos.
 // Si no es así, muestra el modo de uso y termina el programa.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kCorrectNumber) {
-  if (argc - 1 < kCorrectNumber) {
-    std::cerr << "Error: faltan argumentos (se esperaban al menos "
-              << kCorrectNumber << ").\\n"
+                            const int kMinimumNumber) {
+  if ($condicion_cpp || argc - 1 < kMinimumNumber) {
+    std::cerr << "Error: número de argumentos no válido (condición: $condicion_texto).\\n"
               << "Modo de uso: " << argv[0] << "$uso\\n";
     exit(EXIT_FAILURE);
   }
@@ -374,10 +419,9 @@ void PrintProgramPurpose() {
 // Checks that at least the minimum number of arguments was passed.
 // If not, shows the usage and ends the program.
 void CheckCorrectParameters(const int argc, char* argv[],
-                            const int kCorrectNumber) {
-  if (argc - 1 < kCorrectNumber) {
-    std::cerr << "Error: too few arguments (expected at least "
-              << kCorrectNumber << ").\\n"
+                            const int kMinimumNumber) {
+  if ($condicion_cpp || argc - 1 < kMinimumNumber) {
+    std::cerr << "Error: invalid number of arguments (condition: $condicion_texto).\\n"
               << "Usage: " << argv[0] << "$uso\\n";
     exit(EXIT_FAILURE);
   }
@@ -607,11 +651,11 @@ else
     bloque="$(mktemp)"
     {
       texto_constante
-      echo "const int kCorrectNumber = $n_args;"
+      echo "const int kMinimumNumber = $n_args;"
       echo
       echo 'int main(int argc, char* argv[]) {'
       echo '  PrintProgramPurpose();'
-      echo '  CheckCorrectParameters(argc, argv, kCorrectNumber);'
+      echo '  CheckCorrectParameters(argc, argv, kMinimumNumber);'
     } > "$bloque"
 
     awk -v f="$bloque" '

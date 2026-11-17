@@ -1,5 +1,6 @@
 {
  "es": [
+  {"v": "1.3.2", "items": ["<code>genmake</code> acepta condiciones del número de argumentos como <code>&gt;= 2; &lt; 5</code>."]},
   {"v": "1.3.1", "items": ["<code>genmake</code> acepta argumentos adicionales y comprueba que se alcance el mínimo indicado."]},
   {"v": "1.3.0", "items": ["Web nueva en <code>tools.broslunas.com</code>.", "<code>run</code> y <code>estilo</code> también hablan inglés.", "<code>ib-config --ver</code> alinea bien los campos con tildes."]},
   {"v": "1.2.0", "items": ["Comando <code>nuevo</code>: carpeta + genmake en un paso.", "Autocompletado con Tab y colores en <code>run</code> y <code>estilo</code>.", "Pruebas automáticas, releases y plantillas de issues."]},
@@ -7,6 +8,7 @@
   {"v": "1.0.0", "items": ["Primera versión: <code>genmake</code>, <code>run</code> y <code>estilo</code>."]}
  ],
  "en": [
+  {"v": "1.3.2", "items": ["<code>genmake</code> accepts argument count conditions such as <code>&gt;= 2; &lt; 5</code>."]},
   {"v": "1.3.1", "items": ["<code>genmake</code> accepts extra arguments and checks that the stated minimum is met."]},
   {"v": "1.3.0", "items": ["New website at <code>tools.broslunas.com</code>.", "<code>run</code> and <code>estilo</code> speak English too.", "<code>ib-config --show</code> aligns accented fields properly."]},
   {"v": "1.2.0", "items": ["<code>nuevo</code> command: folder + genmake in one step.", "Tab completion and colors in <code>run</code> and <code>estilo</code>.", "Automated tests, releases and issue templates."]},

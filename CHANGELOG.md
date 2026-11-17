@@ -1,5 +1,8 @@
 # Cambios / Changelog
 
+## 1.3.2
+- `genmake` acepta condiciones sobre el número de argumentos (`3`, `>= 2`, `> 2; < 5`, etc.).
+
 ## 1.3.1
 - `genmake` permite argumentos adicionales y solo rechaza si faltan los mínimos indicados.
 

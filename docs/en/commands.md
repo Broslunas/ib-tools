@@ -19,7 +19,7 @@ Questions, one at a time (Enter = value in brackets; `[y/N]` means the capital l
 1. Exercise name (also the executable's name; defaults to the folder name).
 2. Main program file name (default `<name>_main`).
 3. Create a functions file? If yes: its name (default `<name>`), and whether to add the default functions `PrintProgramPurpose` and `CheckCorrectParameters`.
-4. If you add them: how many arguments the program expects (`kCorrectNumber`, not counting the program name), the name of each one (used in the usage message), and a one-line description.
+4. If you add them: the argument-count condition (for example, `3` for exactly three, `>= 2`, or `>= 2; < 5`), the name of each required argument (used in the usage message), and a one-line description. Do not count the program name.
 5. A summary; nothing is written until you confirm.
 
 It creates `Makefile`, `<name>_main.cc` and, optionally, `<name>.cc` + `<name>.h` (one header only). Existing `.cc`/`.h` files are **never** touched; the `Makefile` is rewritten. `genmake -y` accepts every default without asking.

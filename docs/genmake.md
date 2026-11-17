@@ -37,7 +37,7 @@ Los valores entre corchetes son los que se usan si pulsas **Enter** sin escribir
 | **Nombre del archivo del programa principal** | El archivo que contiene el `main()`. Propone `<nombre>_main`. |
 | **¿Crear un archivo de funciones?** | Si dices que sí, crea `<nombre>.cc` y `<nombre>.h` para tus funciones, y pregunta cómo llamarlos. |
 | **¿Añadir las funciones por defecto?** | Añade `PrintProgramPurpose` y `CheckCorrectParameters` al archivo de funciones. Solo aparece si creas ese archivo. |
-| **¿Cuántos argumentos espera el programa?** | El valor de `kCorrectNumber`: argumentos de la línea de comandos, sin contar el nombre del programa. |
+| **Condición para el número de argumentos** | Un número (`3`) exige exactamente esa cantidad. También puedes usar comparaciones como `>= 2`, `> 2` o combinar límites con `>= 2; < 5`. No cuentes el nombre del programa. |
 | **Nombre del argumento N** | Cómo se llama cada argumento. Sale en el mensaje de uso: `Modo de uso: ./cuadrado <numero>`. |
 | **¿Qué hace el programa?** | Frase corta que imprime `PrintProgramPurpose`. Si la dejas vacía, queda un texto para que lo cambies tú. |
 | **¿Crear estos archivos?** | Resumen final. Hasta que respondas `S` no se escribe nada. |
@@ -47,7 +47,7 @@ Los valores entre corchetes son los que se usan si pulsas **Enter** sin escribir
 Son dos funciones que sirven de plantilla para programas que reciben argumentos:
 
 - `PrintProgramPurpose()` imprime una frase sobre lo que hace el programa.
-- `CheckCorrectParameters(argc, argv, kCorrectNumber)` exige al menos ese número de argumentos (sin contar el nombre del programa). Se permiten argumentos adicionales. Si faltan, muestra el modo de uso y termina el programa con error.
+- `CheckCorrectParameters(argc, argv, kMinimumNumber)` valida la condición que indicaste. Por ejemplo, `>= 2; < 5` acepta de 2 a 4 argumentos. Si no se cumple, muestra la condición y el modo de uso y termina el programa con error.
 
 El `main` generado ya las llama al principio:
 
